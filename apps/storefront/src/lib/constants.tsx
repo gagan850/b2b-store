@@ -10,6 +10,14 @@ export const paymentInfoMap: Record<
   string,
   { title: string; icon: React.JSX.Element }
 > = {
+  pp_account_account: {
+    title: "Bill to my account",
+    icon: <FilePlus />,
+  },
+  pp_system_default: {
+    title: "Manual payment (test)",
+    icon: <CreditCard />,
+  },
   pp_stripe_stripe: {
     title: "Credit card",
     icon: <CreditCard />,
@@ -25,10 +33,6 @@ export const paymentInfoMap: Record<
   pp_paypal_paypal: {
     title: "PayPal",
     icon: <PayPal />,
-  },
-  pp_system_default: {
-    title: "Pay by invoice",
-    icon: <FilePlus />,
   },
   // Add more payment providers here
 }
@@ -104,6 +108,17 @@ export const isCardPayment = (providerId?: string) => {
 export const isPaypal = (providerId?: string) => {
   return providerId?.startsWith("pp_paypal")
 }
+export const ACCOUNT_PROVIDER_ID = "pp_account_account"
+export const isAccount = (providerId?: string) => providerId === ACCOUNT_PROVIDER_ID
+
+export const PAYMENT_TERMS_LABEL: Record<string, string> = {
+  prepaid: "Prepaid",
+  net_15: "Net 15",
+  net_30: "Net 30",
+  net_45: "Net 45",
+  net_60: "Net 60",
+}
+
 export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default")
 }
