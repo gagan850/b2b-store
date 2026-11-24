@@ -181,7 +181,7 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
                   <dd>- {money(order.discount_total)}</dd>
                 </div>
               )}
-              <div className="flex justify-between">
+              <div className={deliveryKind === "pickup" ? "hidden" : "flex justify-between"}>
                 <dt>
                   {deliveryKind === "pickup"
                     ? "Will call"

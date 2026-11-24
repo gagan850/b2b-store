@@ -63,9 +63,6 @@ const Payment = ({
           ? CARD_PROVIDER_ID
           : ""
   )
-  const [poNumber, setPoNumber] = useState<string>(
-    activeSession?.data?.po_number ?? ""
-  )
   const [cardChoice, setCardChoice] = useState<string>(
     activeSession?.data?.card?.saved_card_id ??
       savedCards[0]?.id ??
@@ -98,16 +95,8 @@ const Payment = ({
     router.push(pathname + "?step=" + step, { scroll: false })
 
   const digits = cardNumber.replace(/\D/g, "")
-  const newCardComplete =
-    cardName.trim().length > 1 &&
-    luhnValid(digits) &&
-    expiryValid(cardExp) &&
-    /^\d{3,4}$/.test(cardCvc)
-
   const canContinue =
-    (isAccount(method) && !onCreditHold && !!poNumber.trim()) ||
-    (isSavedCardProvider(method) &&
-      (cardChoice !== NEW_CARD || newCardComplete))
+    (isAccount(method) && !onCreditHold) || isSavedCardProvider(method)
 
   const handleSubmit = async () => {
     setIsLoading(true)
@@ -119,19 +108,20 @@ const Payment = ({
             "Your account is on credit hold. Pay by credit card or contact your account manager."
           )
         }
-        if (!poNumber.trim()) {
-          throw new Error("Enter a PO number to bill this order to your account.")
-        }
         await initiatePaymentSession(cart, {
           provider_id: ACCOUNT_PROVIDER_ID,
-          data: { po_number: poNumber.trim() },
+          data: {},
         })
       } else if (isSavedCardProvider(method)) {
         let card: SavedCard | undefined
         if (cardChoice === NEW_CARD) {
-          if (!luhnValid(digits)) throw new Error("Check the card number.")
-          if (!expiryValid(cardExp)) throw new Error("Check the expiry date.")
-          if (!/^\d{3,4}$/.test(cardCvc)) throw new Error("Check the security code.")
+          if (cardName.trim().length < 2) throw new Error("Enter the name on the card.")
+          if (!luhnValid(digits))
+            throw new Error(
+              "That card number isn't valid. For testing, use 4242 4242 4242 4242."
+            )
+          if (!expiryValid(cardExp)) throw new Error("The expiry date has passed or isn't valid (MM/YY).")
+          if (!/^\d{3,4}$/.test(cardCvc)) throw new Error("Enter the 3 or 4 digit security code.")
           card = {
             id: `card_${Date.now().toString(36)}`,
             brand: cardBrand(digits),
@@ -187,7 +177,7 @@ const Payment = ({
     if (isAccount(activeSession.provider_id)) {
       return {
         title: "Bill to account",
-        detail: `PO ${activeSession.data?.po_number ?? ""}`,
+        detail: "invoiced to your company",
       }
     }
     if (isSavedCardProvider(activeSession.provider_id) && activeSession.data?.card) {
@@ -269,11 +259,11 @@ const Payment = ({
               <Tile
                 id={ACCOUNT_PROVIDER_ID}
                 title="Bill to account"
-                sub={
-                  terms
-                    ? `${PAYMENT_TERMS_LABEL[terms] ?? terms} · invoiced to ${company?.name}`
-                    : "Invoiced to your company"
-                }
+                sub={`No payment now. Invoiced to ${company?.name ?? "your company"}${
+                  terms && terms !== "prepaid"
+                    ? `, ${PAYMENT_TERMS_LABEL[terms] ?? terms}`
+                    : ""
+                }`}
               />
             )}
             {canCard && (
@@ -285,32 +275,11 @@ const Payment = ({
             )}
           </div>
 
-          {isAccount(method) && (
-            <div className="flex flex-col gap-3 rounded-md border border-brand-line bg-brand-canvas p-4">
-              {onCreditHold ? (
-                <Text className="text-sm text-status-bad">
-                  This account is on credit hold, so orders can&apos;t be billed to it
-                  right now. Pay by credit card or contact your account manager.
-                </Text>
-              ) : (
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-semibold">
-                    PO number <span className="text-status-bad">*</span>
-                  </span>
-                  <input
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="e.g. PO-104233"
-                    maxLength={40}
-                    className={clx(inputCls, "max-w-xs")}
-                    data-testid="po-number-input"
-                  />
-                  <span className="text-xs text-neutral-500">
-                    Printed on your invoice. Payment is due per your terms.
-                  </span>
-                </label>
-              )}
-            </div>
+          {isAccount(method) && onCreditHold && (
+            <Text className="rounded-md border border-brand-line bg-brand-canvas p-4 text-sm text-status-bad">
+              This account is on credit hold, so orders can&apos;t be billed to it
+              right now. Pay by credit card or contact your account manager.
+            </Text>
           )}
 
           {isSavedCardProvider(method) && (

@@ -221,7 +221,7 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
               <ModeTile
                 id="pickup"
                 title="Will call"
-                sub="Pick up at an LK warehouse. No shipping charge."
+                sub="Pick up at an LK warehouse"
               />
             )}
           </div>
@@ -333,7 +333,7 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
                       },
                     })
                   }
-                  right="Free"
+                  right={null}
                   testId="pickup-option-radio"
                 >
                   <span className="block font-semibold text-brand-navy">
@@ -371,7 +371,11 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
           <div className="flex flex-wrap items-baseline gap-x-2 pt-2 text-sm">
             <span className="font-semibold text-brand-navy">{summary}</span>
             <span className="text-neutral-600">
-              {selectedKind === "collect" ? "Freight billed to your account" : price(selected)}
+              {selectedKind === "collect"
+                ? "Freight billed to your account"
+                : selectedKind === "pickup"
+                  ? ""
+                  : price(selected)}
             </span>
           </div>
         )

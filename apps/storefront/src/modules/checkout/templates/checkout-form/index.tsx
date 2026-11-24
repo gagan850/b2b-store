@@ -26,10 +26,8 @@ export default async function CheckoutForm({
 
   const shippingMethods = await listCartShippingMethods(cart.id)
   const allPaymentMethods = await listCartPaymentMethods(cart.region?.id ?? "")
-  // "Bill to account" is only offered to companies on net terms
-  const company = cart.company
-  const canBillToAccount =
-    !!company && !!company.payment_terms && company.payment_terms !== "prepaid"
+  // "Bill to account" is offered to every company buyer (credit hold is checked on the order)
+  const canBillToAccount = !!cart.company
   // Checkout offers two ways to pay: Bill to account and Credit card
   const paymentMethods = allPaymentMethods?.filter(
     (m: any) =>

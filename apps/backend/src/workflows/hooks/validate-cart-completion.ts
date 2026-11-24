@@ -57,7 +57,8 @@ completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
     }
   }
 
-  // Bill to account: only for companies with net terms that are not on credit hold
+  // Bill to account: any company buyer, unless the company is on credit hold.
+  // Payment is skipped at checkout and the credit team charges later.
   const accountSession = queryCart.payment_collection?.payment_sessions?.find(
     (s: any) => s?.provider_id === ACCOUNT_PROVIDER_ID
   );
@@ -79,10 +80,10 @@ completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
         ).data[0]?.employee?.company
       : null;
 
-    if (!company || company.payment_terms === "prepaid") {
+    if (!company) {
       throw new MedusaError(
         MedusaError.Types.NOT_ALLOWED,
-        "Your company is not set up to bill to account. Please pay by card."
+        "Only company accounts can bill to account. Please pay by card."
       );
     }
 
@@ -90,17 +91,6 @@ completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
       throw new MedusaError(
         MedusaError.Types.NOT_ALLOWED,
         "Your account is on credit hold. Please pay by card or contact your account manager."
-      );
-    }
-
-    const poNumber =
-      (accountSession.data as any)?.po_number ??
-      (queryCart.metadata as any)?.po_number;
-
-    if (!poNumber || String(poNumber).trim() === "") {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "A PO number is required when billing to account."
       );
     }
   }
