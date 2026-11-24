@@ -11,8 +11,12 @@ export const paymentInfoMap: Record<
   { title: string; icon: React.JSX.Element }
 > = {
   pp_account_account: {
-    title: "Bill to my account",
+    title: "Bill to account",
     icon: <FilePlus />,
+  },
+  pp_card_card: {
+    title: "Credit card",
+    icon: <CreditCard />,
   },
   pp_system_default: {
     title: "Manual payment (test)",
@@ -110,6 +114,14 @@ export const isPaypal = (providerId?: string) => {
 }
 export const ACCOUNT_PROVIDER_ID = "pp_account_account"
 export const isAccount = (providerId?: string) => providerId === ACCOUNT_PROVIDER_ID
+
+// Credit card (demo mode until PayPal is connected). Only brand + last 4 are kept.
+export const CARD_PROVIDER_ID = "pp_card_card"
+export const isSavedCardProvider = (providerId?: string) =>
+  providerId === CARD_PROVIDER_ID
+
+// The two ways to pay at checkout, in display order
+export const CHECKOUT_PAYMENT_PROVIDERS = [ACCOUNT_PROVIDER_ID, CARD_PROVIDER_ID]
 
 export const PAYMENT_TERMS_LABEL: Record<string, string> = {
   prepaid: "Prepaid",

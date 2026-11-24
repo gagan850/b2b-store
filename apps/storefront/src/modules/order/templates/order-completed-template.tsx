@@ -1,5 +1,7 @@
 import { BRAND } from "@/lib/brand"
 import { getPaymentInfo } from "@/lib/constants"
+import { cardLabel } from "@/lib/util/card"
+import { describeDelivery, kindOf } from "@/lib/util/delivery"
 import { convertToLocale } from "@/lib/util/money"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import PrintButton from "@/modules/order/components/print-button"
@@ -56,7 +58,10 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
         ? "Bill to account"
         : "Pay by invoice"
       : getPaymentInfo(payment.provider_id)?.title ?? payment.provider_id
-  const shipping = order.shipping_methods?.[0]
+  const card = (payment?.data as any)?.card as { brand: string; last4: string } | undefined
+  const shipping = order.shipping_methods?.[0] as any
+  const deliveryKind = shipping ? kindOf(shipping) : undefined
+  const delivery = shipping ? describeDelivery(shipping, shipping.data) : ""
   const items = [...(order.items ?? [])].sort((a, b) =>
     (a.created_at ?? "") > (b.created_at ?? "") ? 1 : -1
   )
@@ -177,7 +182,11 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
                 </div>
               )}
               <div className="flex justify-between">
-                <dt>Shipping{shipping?.name ? ` (${shipping.name})` : ""}</dt>
+                <dt>
+                  {deliveryKind === "pickup"
+                    ? "Will call"
+                    : `Shipping${deliveryKind === "carrier" && shipping?.name ? ` (${shipping.name})` : ""}`}
+                </dt>
                 <dd>{money(order.shipping_total)}</dd>
               </div>
               <div className="flex justify-between">
@@ -198,9 +207,22 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
               <p className="text-sm text-brand-ink" data-testid="payment-method">
                 {paymentTitle}
                 {po ? ` · PO ${po}` : ""}
+                {card ? ` · ${cardLabel(card)}` : ""}
               </p>
             </div>
-            <Address title="Ship to" address={order.shipping_address} />
+            {delivery && (
+              <div>
+                <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-neutral-500">
+                  Delivery
+                </h3>
+                <p className="text-sm text-brand-ink" data-testid="delivery-method">
+                  {delivery}
+                </p>
+              </div>
+            )}
+            {deliveryKind !== "pickup" && (
+              <Address title="Ship to" address={order.shipping_address} />
+            )}
             <Address title="Bill to" address={order.billing_address} />
           </section>
         </aside>
@@ -210,8 +232,9 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
         <div>
           <h3 className="font-bold text-brand-navy">What happens next</h3>
           <p className="text-neutral-600">
-            We&apos;ll confirm stock and ship from the warehouse nearest you. Tracking is emailed
-            as soon as it ships.
+            {deliveryKind === "pickup"
+              ? "We'll pick your order and email you when it's ready at the warehouse. Bring your order number."
+              : "We'll confirm stock and ship from the warehouse nearest you. Tracking is emailed as soon as it ships."}
           </p>
         </div>
         <div>

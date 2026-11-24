@@ -1,3 +1,4 @@
+import { describeDelivery, kindOf } from "@/lib/util/delivery"
 import { HttpTypes } from "@medusajs/types"
 import { Heading, Text } from "@medusajs/ui"
 
@@ -6,64 +7,43 @@ type ShippingDetailsProps = {
 }
 
 const ShippingDetails = ({ order }: ShippingDetailsProps) => {
-  // order.shipping_address = {
-  //   first_name: "Riqwan",
-  //   last_name: "Thamir",
-  //   address_1: "11c heidestrasse",
-  //   address_2: "Berlin - 10557",
-  //   country_code: "DE",
-  //   postal_code: "10557",
-  //   city: "Berlin",
-  //   company: "MedusaJS Aps",
-  // }
-  // order.billing_address = {
-  //   first_name: "Riqwan",
-  //   last_name: "Thamir",
-  //   address_1: "11c heidestrasse",
-  //   address_2: "Berlin - 10557",
-  //   country_code: "DE",
-  //   postal_code: "10557",
-  //   city: "Berlin",
-  // }
-  // order.shipping_methods = [
-  //   {
-  //     name: "Webshiper",
-  //     total: 1055,
-  //   },
-  // ]
-  return (
-    !!order.shipping_address && (
-      <>
-        <Heading level="h3" className="mb-2">
-          Delivery Address
-        </Heading>
+  const method = order.shipping_methods?.[0] as any
+  const pickup = method && kindOf(method) === "pickup"
+  const a = order.shipping_address
 
-        {!!order.shipping_address && (
-          <div>
-            <Text className="txt-medium text-ui-fg-subtle capitalize">
-              {order.shipping_address?.company}
+  return (
+    <div className="flex flex-col gap-4">
+      {method && (
+        <div>
+          <Heading level="h3" className="mb-1">
+            Delivery
+          </Heading>
+          <Text className="txt-medium text-ui-fg-subtle" data-testid="delivery-method">
+            {describeDelivery(method, method.data)}
+          </Text>
+        </div>
+      )}
+      {!pickup && a && (
+        <div>
+          <Heading level="h3" className="mb-1">
+            Ship to
+          </Heading>
+          <div className="txt-medium text-ui-fg-subtle">
+            {a.company && <Text>{a.company}</Text>}
+            <Text>
+              {a.first_name} {a.last_name}
             </Text>
-            <Text className="txt-medium text-ui-fg-subtle capitalize">
-              {order.shipping_address?.first_name}{" "}
-              {order.shipping_address?.last_name}
+            <Text>
+              {a.address_1} {a.address_2}
             </Text>
-            <Text className="txt-medium text-ui-fg-subtle capitalize">
-              {order.shipping_address?.phone}
+            <Text>
+              {[a.city, a.province].filter(Boolean).join(", ")} {a.postal_code}
             </Text>
-            <Text className="txt-medium text-ui-fg-subtle">
-              {order.shipping_address?.address_1}{" "}
-              {order.shipping_address?.address_2}
-            </Text>
-            <Text className="txt-medium text-ui-fg-subtle">
-              {order.shipping_address?.postal_code},{" "}
-              {order.shipping_address?.city},{" "}
-              {order.shipping_address?.province},{" "}
-              {order.shipping_address?.country_code?.toUpperCase()}
-            </Text>
+            {a.phone && <Text>{a.phone}</Text>}
           </div>
-        )}
-      </>
-    )
+        </div>
+      )}
+    </div>
   )
 }
 

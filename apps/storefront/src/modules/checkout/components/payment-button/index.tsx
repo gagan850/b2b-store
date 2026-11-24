@@ -2,6 +2,7 @@
 
 import {
   isAccount,
+  isSavedCardProvider,
   isAdyen,
   isManual,
   isPaypal,
@@ -89,6 +90,7 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         />
       )
     case isAccount(paymentSession?.provider_id):
+    case isSavedCardProvider(paymentSession?.provider_id):
     case isManual(paymentSession?.provider_id):
       return (
         <ManualTestPaymentButton

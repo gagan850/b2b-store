@@ -1,6 +1,7 @@
 import { Container, Heading, Text } from "@medusajs/ui"
 
 import { getPaymentInfo, isAccount, isStripeLike } from "@/lib/constants"
+import { cardLabel } from "@/lib/util/card"
 import Divider from "@/modules/common/components/divider"
 import { convertToLocale } from "@/lib/util/money"
 import { HttpTypes } from "@medusajs/types"
@@ -40,7 +41,9 @@ const PaymentDetails = ({ order }: PaymentDetailsProps) => {
                   {getPaymentInfo(payment.provider_id)?.icon}
                 </Container>
                 <Text data-testid="payment-amount">
-                  {isStripeLike(payment.provider_id) && payment.data?.card_last4
+                  {(payment.data as any)?.card?.last4
+                    ? `${cardLabel((payment.data as any).card)}`
+                    : isStripeLike(payment.provider_id) && payment.data?.card_last4
                     ? `**** **** **** ${payment.data.card_last4}`
                     : isAccount(payment.provider_id)
                     ? `${convertToLocale({

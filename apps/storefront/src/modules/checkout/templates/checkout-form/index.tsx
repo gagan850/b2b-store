@@ -1,5 +1,5 @@
 import { listCartShippingMethods } from "@/lib/data/fulfillment"
-import { ACCOUNT_PROVIDER_ID } from "@/lib/constants"
+import { ACCOUNT_PROVIDER_ID, CHECKOUT_PAYMENT_PROVIDERS } from "@/lib/constants"
 import { listCartPaymentMethods } from "@/lib/data/payment"
 import ApprovalStatusBanner from "@/modules/cart/components/approval-status-banner"
 import SignInPrompt from "@/modules/cart/components/sign-in-prompt"
@@ -31,8 +31,11 @@ export default async function CheckoutForm({
   const company = cart.company
   const canBillToAccount =
     !!company && !!company.payment_terms && company.payment_terms !== "prepaid"
+  // Checkout offers two ways to pay: Bill to account and Credit card
   const paymentMethods = allPaymentMethods?.filter(
-    (m: any) => m.id !== ACCOUNT_PROVIDER_ID || canBillToAccount
+    (m: any) =>
+      CHECKOUT_PAYMENT_PROVIDERS.includes(m.id) &&
+      (m.id !== ACCOUNT_PROVIDER_ID || canBillToAccount)
   )
   const requiresApproval =
     cart.company?.approval_settings?.requires_admin_approval ||
@@ -75,7 +78,11 @@ export default async function CheckoutForm({
         {(customer?.employee?.is_admin &&
           cart.approval_status?.status === ApprovalStatusType.APPROVED) ||
         !requiresApproval ? (
-          <Payment cart={cart} availablePaymentMethods={paymentMethods} />
+          <Payment
+            cart={cart}
+            customer={customer}
+            availablePaymentMethods={paymentMethods}
+          />
         ) : null}
       </div>
     </div>

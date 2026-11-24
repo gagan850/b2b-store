@@ -35,6 +35,11 @@ module.exports = defineConfig({
             resolve: "./src/modules/account-payment",
             id: "account",
           },
+          {
+            // Credit card, demo mode until PayPal is connected -> pp_card_card
+            resolve: "./src/modules/card-payment",
+            id: "card",
+          },
         ],
       },
     },
