@@ -64,7 +64,7 @@ export default async function CheckoutForm({
 
         <ShippingAddress cart={cart} customer={customer} />
 
-        <BillingAddress cart={cart} />
+        <BillingAddress cart={cart} customer={customer} />
 
         <Shipping cart={cart} availableShippingMethods={shippingMethods} />
 

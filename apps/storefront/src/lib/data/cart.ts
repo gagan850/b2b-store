@@ -388,6 +388,24 @@ export async function submitPromotionForm(
   }
 }
 
+// Save a checkout address to the buyer's address book, unless it is already there
+async function saveToAddressBook(address: Record<string, any>) {
+  const customer = await retrieveCustomer()
+  if (!customer) return
+  const keys = ["first_name", "last_name", "company", "address_1", "city", "province", "postal_code", "country_code", "phone"]
+  const norm = (a: any) => keys.map((k) => String(a?.[k] ?? "").trim().toLowerCase()).join("|")
+  if ((customer.addresses ?? []).some((a: any) => norm(a) === norm(address))) return
+  const headers = { ...(await getAuthHeaders()) }
+  const clean = Object.fromEntries(keys.map((k) => [k, String(address[k] ?? "")]))
+  await sdk.store.customer
+    .createAddress(clean as any, {}, headers)
+    .then(async () => {
+      const cacheTag = await getCacheTag("customers")
+      revalidateTag(cacheTag, { expire: 0 })
+    })
+    .catch(() => null)
+}
+
 // TODO: Pass a POJO instead of a form entity here
 export async function setShippingAddress(formData: FormData) {
   try {
@@ -419,6 +437,9 @@ export async function setShippingAddress(formData: FormData) {
       email: customer?.email || formData.get("email"),
     } as any
     await updateCart(data)
+    if (formData.get("save_address") === "1") {
+      await saveToAddressBook(data.shipping_address)
+    }
   } catch (e: any) {
     throw new Error(e)
   }
@@ -447,6 +468,9 @@ export async function setBillingAddress(formData: FormData) {
     } as any
 
     await updateCart(data)
+    if (formData.get("save_address") === "1") {
+      await saveToAddressBook(data.billing_address)
+    }
   } catch (e: any) {
     return e.message
   }
@@ -461,14 +485,17 @@ export async function setContactDetails(
     if (!cartId) {
       throw new Error("No existing cart found when setting contact details")
     }
+    const cart = await retrieveCart()
+    const str = (k: string) => String(formData.get(k) ?? "").trim()
+    const blindShip = formData.get("blind_ship") === "1"
     const data = {
-      email: formData.get("email") as string,
+      email: str("email"),
       metadata: {
-        invoice_recipient: formData.get("invoice_recipient"),
-        cost_center: formData.get("cost_center"),
-        requisition_number: formData.get("requisition_number"),
-        door_code: formData.get("door_code"),
-        notes: formData.get("notes"),
+        ...(cart?.metadata ?? {}),
+        po_number: str("po_number").slice(0, 40),
+        notes: str("notes").slice(0, 200),
+        blind_ship: blindShip,
+        blind_ship_name: blindShip ? str("blind_ship_name").slice(0, 60) : "",
       },
     }
     await updateCart(data)

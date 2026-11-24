@@ -12,6 +12,11 @@ export default defineMiddlewares({
       middlewares: [allowFields("employee")],
     },
     {
+      // PO number, blind ship and delivery instructions live in order metadata
+      matcher: "/store/orders/*",
+      middlewares: [allowFields("metadata")],
+    },
+    {
       matcher: "/store/carts",
       middlewares: [
         allowFields(

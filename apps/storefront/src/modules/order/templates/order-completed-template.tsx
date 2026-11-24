@@ -2,6 +2,7 @@ import { BRAND } from "@/lib/brand"
 import { getPaymentInfo } from "@/lib/constants"
 import { cardLabel } from "@/lib/util/card"
 import { describeDelivery, kindOf } from "@/lib/util/delivery"
+import { estimate } from "@/lib/util/ship-dates"
 import { convertToLocale } from "@/lib/util/money"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import PrintButton from "@/modules/order/components/print-button"
@@ -50,18 +51,18 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
     year: "numeric",
   })
   const payment = order.payment_collections?.[0]?.payments?.[0]
-  const po = (payment?.data as any)?.po_number as string | undefined
+  const meta = (order.metadata ?? {}) as Record<string, any>
+  const po = (meta.po_number || (payment?.data as any)?.po_number) as string | undefined
   const paymentTitle = !payment
     ? "—"
     : payment.provider_id?.startsWith("pp_system_default")
-      ? po
-        ? "Bill to account"
-        : "Pay by invoice"
+      ? "Pay by invoice"
       : getPaymentInfo(payment.provider_id)?.title ?? payment.provider_id
   const card = (payment?.data as any)?.card as { brand: string; last4: string } | undefined
   const shipping = order.shipping_methods?.[0] as any
   const deliveryKind = shipping ? kindOf(shipping) : undefined
   const delivery = shipping ? describeDelivery(shipping, shipping.data) : ""
+  const eta = estimate(shipping?.data, new Date(order.created_at ?? Date.now()))
   const items = [...(order.items ?? [])].sort((a, b) =>
     (a.created_at ?? "") > (b.created_at ?? "") ? 1 : -1
   )
@@ -206,7 +207,6 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
               </h3>
               <p className="text-sm text-brand-ink" data-testid="payment-method">
                 {paymentTitle}
-                {po ? ` · PO ${po}` : ""}
                 {card ? ` · ${cardLabel(card)}` : ""}
               </p>
             </div>
@@ -218,6 +218,21 @@ export default async function OrderCompletedTemplate({ order }: OrderCompletedTe
                 <p className="text-sm text-brand-ink" data-testid="delivery-method">
                   {delivery}
                 </p>
+                <p className="text-sm text-neutral-600" data-testid="delivery-eta">
+                  {deliveryKind === "pickup"
+                    ? `Ready for pickup ${eta.shipDate}`
+                    : `Estimated ship date ${eta.shipDate}`}
+                  {eta.arrive ? ` · Est. delivery ${eta.arrive}` : ""}
+                </p>
+                {meta.blind_ship && (
+                  <p className="text-sm text-brand-ink" data-testid="blind-ship">
+                    Blind ship{meta.blind_ship_name ? ` as ${meta.blind_ship_name}` : ""}: no LK
+                    branding, invoice or prices in the box
+                  </p>
+                )}
+                {meta.notes && (
+                  <p className="text-sm text-neutral-600">Instructions: {meta.notes}</p>
+                )}
               </div>
             )}
             {deliveryKind !== "pickup" && (

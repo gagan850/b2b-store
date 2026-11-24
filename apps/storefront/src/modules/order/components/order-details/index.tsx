@@ -31,6 +31,13 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
           </Text>
         </div>
 
+        {(order.metadata as any)?.po_number && (
+          <div className="mb-2 flex justify-between">
+            <Text>PO number</Text>
+            <Text data-testid="order-po">{(order.metadata as any).po_number}</Text>
+          </div>
+        )}
+
         <Text>
           We have sent the order confirmation details to{" "}
           <span className="font-semibold">{order.email}</span>.

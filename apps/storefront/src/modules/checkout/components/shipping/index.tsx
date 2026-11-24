@@ -9,6 +9,7 @@ import {
   warehouseName,
 } from "@/lib/util/delivery"
 import { convertToLocale } from "@/lib/util/money"
+import { CUTOFF_HOUR_CT, estimate } from "@/lib/util/ship-dates"
 import ErrorMessage from "@/modules/checkout/components/error-message"
 import Button from "@/modules/common/components/button"
 import Divider from "@/modules/common/components/divider"
@@ -78,9 +79,10 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
       .finally(() => setIsLoading(false))
   }
 
-  const pickCarrier = (id: string) => {
+  const pickCarrier = (o: Option) => {
     setPendingCollect(false)
-    choose(id)
+    // Keep the service and transit on the order so it can show delivery estimates
+    choose(o.id, { kind: "carrier", transit: o.data?.transit ?? null })
   }
 
   const saveAccount = async () => {
@@ -90,6 +92,7 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
       return
     }
     await choose(collectOption.id, {
+      kind: "collect",
       carrier_account: {
         carrier: acctCarrier,
         account_number: acctNumber.trim().slice(0, 30),
@@ -226,20 +229,34 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
             )}
           </div>
 
+          <p className="text-sm text-neutral-600" data-testid="cutoff-note">
+            {estimate().ship === "Today"
+              ? `In-stock orders placed by ${CUTOFF_HOUR_CT - 12}:00 PM CT ship today.`
+              : `Orders placed now ship ${estimate().ship}. Cutoff is ${CUTOFF_HOUR_CT - 12}:00 PM CT on business days.`}
+          </p>
+
           {mode === "ship" ? (
             <div className="flex flex-col rounded-md border border-brand-line">
               {carrierOptions.map((o) => (
                 <Row
                   key={o.id}
                   checked={!pendingCollect && selected?.id === o.id}
-                  onSelect={() => pickCarrier(o.id)}
+                  onSelect={() => pickCarrier(o)}
                   right={price(o)}
                   testId="delivery-option-radio"
                 >
                   <span className="block font-semibold text-brand-navy">{o.name}</span>
-                  {o.data?.transit && (
-                    <span className="block text-neutral-500">{o.data.transit}</span>
-                  )}
+                  <span className="block text-neutral-500">
+                    {o.data?.transit}
+                    {estimate(o.data).arrive && (
+                      <>
+                        {" · "}
+                        <span className="text-brand-ink" data-testid="eta">
+                          Est. delivery {estimate(o.data).arrive}
+                        </span>
+                      </>
+                    )}
+                  </span>
                 </Row>
               ))}
               {collectOption && (
@@ -254,7 +271,8 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
                       Ship on my carrier account
                     </span>
                     <span className="block text-neutral-500">
-                      Freight is billed to your UPS, FedEx or other account
+                      Freight is billed to your UPS, FedEx or other account · Ships{" "}
+                      {estimate().ship.toLowerCase() === "today" ? "today" : estimate().ship}
                     </span>
                   </Row>
                   {collectSelected && (
@@ -326,6 +344,7 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
                   checked={selected?.id === o.id}
                   onSelect={() =>
                     choose(o.id, {
+                      kind: "pickup",
                       pickup: {
                         warehouse: warehouseName(o),
                         address: warehouseAddress(o),
@@ -341,11 +360,14 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
                   </span>
                   <span className="block text-neutral-600">{warehouseAddress(o)}</span>
                   {o.data?.hours && (
-                    <span className="block text-neutral-500">
-                      {o.data.hours}
-                      {o.data.ready ? ` · ${o.data.ready}` : ""}
-                    </span>
+                    <span className="block text-neutral-500">{o.data.hours}</span>
                   )}
+                  <span className="block text-brand-ink">
+                    Ready for pickup{" "}
+                    {estimate().ship === "Today"
+                      ? "today, usually within 2 hours"
+                      : estimate().ship}
+                  </span>
                 </Row>
               ))}
             </div>
@@ -370,6 +392,15 @@ const Shipping: React.FC<ShippingProps> = ({ cart, availableShippingMethods }) =
         selected && (
           <div className="flex flex-wrap items-baseline gap-x-2 pt-2 text-sm">
             <span className="font-semibold text-brand-navy">{summary}</span>
+            {selected && (
+              <span className="text-neutral-600">
+                {selectedKind === "pickup"
+                  ? `· Ready ${estimate().ship === "Today" ? "today" : estimate().ship}`
+                  : estimate(selected.data).arrive
+                    ? `· Est. delivery ${estimate(selected.data).arrive}`
+                    : `· Ships ${estimate().ship === "Today" ? "today" : estimate().ship}`}
+              </span>
+            )}
             <span className="text-neutral-600">
               {selectedKind === "collect"
                 ? "Freight billed to your account"
