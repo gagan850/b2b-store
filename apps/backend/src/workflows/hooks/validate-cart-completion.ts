@@ -1,9 +1,11 @@
 import { completeCartWorkflow } from "@medusajs/core-flows";
 import { StepResponse } from "@medusajs/framework/workflows-sdk";
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
+import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils";
 import { getCartApprovalStatus } from "../../utils/get-cart-approval-status";
 import { checkSpendingLimit } from "../../utils/check-spending-limit";
 import { HttpTypes } from "@medusajs/framework/types";
+
+export const ACCOUNT_PROVIDER_ID = "pp_account_account";
 completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
   const query = container.resolve(ContainerRegistrationKeys.QUERY);
 
@@ -11,7 +13,14 @@ completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
     data: [queryCart],
   } = await query.graph({
     entity: "cart",
-    fields: ["approvals.*", "customer_id", "total"],
+    fields: [
+      "approvals.*",
+      "customer_id",
+      "total",
+      "metadata",
+      "payment_collection.payment_sessions.provider_id",
+      "payment_collection.payment_sessions.data",
+    ],
     filters: {
       id: cart.id,
     },
@@ -45,6 +54,54 @@ completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
       if (spendLimitExceeded) {
         throw new Error("Cart total exceeds spending limit");
       }
+    }
+  }
+
+  // Bill to account: only for companies with net terms that are not on credit hold
+  const accountSession = queryCart.payment_collection?.payment_sessions?.find(
+    (s: any) => s?.provider_id === ACCOUNT_PROVIDER_ID
+  );
+
+  if (accountSession) {
+    // Look the company up through the signed-in customer's employee record.
+    // The cart's company link comes from client-supplied metadata, so it is
+    // not trusted for credit decisions.
+    const company = queryCart.customer_id
+      ? (
+          await query.graph({
+            entity: "customer",
+            fields: [
+              "employee.company.payment_terms",
+              "employee.company.credit_hold",
+            ],
+            filters: { id: queryCart.customer_id },
+          })
+        ).data[0]?.employee?.company
+      : null;
+
+    if (!company || company.payment_terms === "prepaid") {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "Your company is not set up to bill to account. Please pay by card."
+      );
+    }
+
+    if (company.credit_hold) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "Your account is on credit hold. Please pay by card or contact your account manager."
+      );
+    }
+
+    const poNumber =
+      (accountSession.data as any)?.po_number ??
+      (queryCart.metadata as any)?.po_number;
+
+    if (!poNumber || String(poNumber).trim() === "") {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "A PO number is required when billing to account."
+      );
     }
   }
 

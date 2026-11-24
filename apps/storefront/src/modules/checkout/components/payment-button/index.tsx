@@ -1,6 +1,12 @@
 "use client"
 
-import { isAdyen, isManual, isPaypal, isStripeLike } from "@/lib/constants"
+import {
+  isAccount,
+  isAdyen,
+  isManual,
+  isPaypal,
+  isStripeLike,
+} from "@/lib/constants"
 import { createCartApproval, placeOrder } from "@/lib/data/cart"
 import { getPaymentErrorMessage } from "@/lib/util/payment-error"
 import ErrorMessage from "@/modules/checkout/components/error-message"
@@ -82,6 +88,7 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
           data-testid={dataTestId}
         />
       )
+    case isAccount(paymentSession?.provider_id):
     case isManual(paymentSession?.provider_id):
       return (
         <ManualTestPaymentButton

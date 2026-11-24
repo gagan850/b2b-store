@@ -11,6 +11,8 @@ export const adminCompanyFields = [
   "zip",
   "country",
   "currency_code",
+  "payment_terms",
+  "credit_hold",
   "*employees",
 ];
 

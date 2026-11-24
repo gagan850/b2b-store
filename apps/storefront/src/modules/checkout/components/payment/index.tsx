@@ -1,6 +1,12 @@
 "use client"
 
-import { getPaymentInfo, isCardPayment, isStripeLike } from "@/lib/constants"
+import {
+  PAYMENT_TERMS_LABEL,
+  getPaymentInfo,
+  isAccount,
+  isCardPayment,
+  isStripeLike,
+} from "@/lib/constants"
 import { initiatePaymentSession } from "@/lib/data/cart"
 import { getPaymentErrorMessage } from "@/lib/util/payment-error"
 import ErrorMessage from "@/modules/checkout/components/error-message"
@@ -35,6 +41,12 @@ const Payment = ({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
     activeSession?.provider_id ?? ""
   )
+  const [poNumber, setPoNumber] = useState<string>(
+    activeSession?.data?.po_number ?? ""
+  )
+  const company = cart.company
+  const terms = company?.payment_terms
+  const onCreditHold = !!company?.credit_hold
 
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -91,7 +103,21 @@ const Payment = ({
       const shouldInputCard =
         isStripeLike(selectedPaymentMethod) && !activeSession
 
-      if (
+      if (isAccount(selectedPaymentMethod)) {
+        if (onCreditHold) {
+          throw new Error(
+            "Your account is on credit hold. Please pay by card or contact your account manager."
+          )
+        }
+        if (!poNumber.trim()) {
+          throw new Error("Enter a PO number to bill this order to your account.")
+        }
+        // Always re-create, so a changed PO number is saved on the session
+        await initiatePaymentSession(cart, {
+          provider_id: selectedPaymentMethod,
+          data: { po_number: poNumber.trim() },
+        })
+      } else if (
         !activeSession ||
         activeSession.provider_id !== selectedPaymentMethod
       ) {
@@ -171,6 +197,47 @@ const Payment = ({
                     )
                   })}
               </RadioGroup>
+              {isAccount(selectedPaymentMethod) && (
+                <div className="mt-5 flex flex-col gap-3 rounded-md border border-brand-line bg-brand-canvas p-4">
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="font-semibold text-brand-navy">
+                      {company?.name}
+                    </span>
+                    {terms && (
+                      <span className="chip chip-info">
+                        {PAYMENT_TERMS_LABEL[terms] ?? terms}
+                      </span>
+                    )}
+                    {onCreditHold && (
+                      <span className="chip chip-bad">Credit hold</span>
+                    )}
+                  </div>
+                  {onCreditHold ? (
+                    <Text className="text-sm text-status-bad">
+                      This account is on credit hold, so orders can't be billed
+                      to it right now. Pay by card or contact your account
+                      manager.
+                    </Text>
+                  ) : (
+                    <label className="flex flex-col gap-1 text-sm">
+                      <span className="font-semibold">
+                        PO number <span className="text-status-bad">*</span>
+                      </span>
+                      <input
+                        value={poNumber}
+                        onChange={(e) => setPoNumber(e.target.value)}
+                        placeholder="e.g. PO-104233"
+                        maxLength={40}
+                        className="w-full max-w-xs rounded border border-brand-line bg-white px-3 py-2 outline-none focus:border-brand-blue"
+                        data-testid="po-number-input"
+                      />
+                      <span className="text-xs text-neutral-500">
+                        Printed on your invoice. Payment is due per your terms.
+                      </span>
+                    </label>
+                  )}
+                </div>
+              )}
               {stripeReady && isCardPayment(selectedPaymentMethod) && (
                 <div className="mt-5 transition-all duration-150 ease-in-out">
                   <Text className="txt-medium-plus text-ui-fg-base mb-1">
@@ -217,6 +284,8 @@ const Payment = ({
               isLoading={isLoading}
               disabled={
                 (isCardPayment(selectedPaymentMethod) && !cardComplete) ||
+                (isAccount(selectedPaymentMethod) &&
+                  (onCreditHold || !poNumber.trim())) ||
                 (!selectedPaymentMethod && !paidByGiftcard)
               }
               data-testid="submit-payment-button"
@@ -253,6 +322,8 @@ const Payment = ({
                   <Text>
                     {isStripeLike(selectedPaymentMethod) && cardBrand
                       ? cardBrand
+                      : isAccount(selectedPaymentMethod)
+                      ? `PO ${activeSession?.data?.po_number ?? poNumber}`
                       : getPaymentInfo(selectedPaymentMethod)?.title}
                   </Text>
                 </div>

@@ -19,6 +19,8 @@ export type ModuleCompany = {
   logo_url: string | null
   currency_code: string | null
   spending_limit_reset_frequency: ModuleCompanySpendingLimitResetFrequency
+  payment_terms?: "prepaid" | "net_15" | "net_30" | "net_45" | "net_60"
+  credit_hold?: boolean
   created_at: string
   updated_at: string
   deleted_at: string | null
