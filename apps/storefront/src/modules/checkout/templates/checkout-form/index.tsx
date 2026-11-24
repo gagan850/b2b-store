@@ -1,4 +1,5 @@
 import { listCartShippingMethods } from "@/lib/data/fulfillment"
+import { ACCOUNT_PROVIDER_ID } from "@/lib/constants"
 import { listCartPaymentMethods } from "@/lib/data/payment"
 import ApprovalStatusBanner from "@/modules/cart/components/approval-status-banner"
 import SignInPrompt from "@/modules/cart/components/sign-in-prompt"
@@ -25,7 +26,14 @@ export default async function CheckoutForm({
   }
 
   const shippingMethods = await listCartShippingMethods(cart.id)
-  const paymentMethods = await listCartPaymentMethods(cart.region?.id ?? "")
+  const allPaymentMethods = await listCartPaymentMethods(cart.region?.id ?? "")
+  // "Bill to account" is only offered to companies on net terms
+  const company = cart.company
+  const canBillToAccount =
+    !!company && !!company.payment_terms && company.payment_terms !== "prepaid"
+  const paymentMethods = allPaymentMethods?.filter(
+    (m: any) => m.id !== ACCOUNT_PROVIDER_ID || canBillToAccount
+  )
   const requiresApproval =
     cart.company?.approval_settings?.requires_admin_approval ||
     cart.company?.approval_settings?.requires_sales_manager_approval

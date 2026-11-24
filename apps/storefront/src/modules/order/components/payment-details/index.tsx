@@ -1,6 +1,6 @@
 import { Container, Heading, Text } from "@medusajs/ui"
 
-import { getPaymentInfo, isStripeLike } from "@/lib/constants"
+import { getPaymentInfo, isAccount, isStripeLike } from "@/lib/constants"
 import Divider from "@/modules/common/components/divider"
 import { convertToLocale } from "@/lib/util/money"
 import { HttpTypes } from "@medusajs/types"
@@ -42,6 +42,13 @@ const PaymentDetails = ({ order }: PaymentDetailsProps) => {
                 <Text data-testid="payment-amount">
                   {isStripeLike(payment.provider_id) && payment.data?.card_last4
                     ? `**** **** **** ${payment.data.card_last4}`
+                    : isAccount(payment.provider_id)
+                    ? `${convertToLocale({
+                        amount: payment.amount,
+                        currency_code: order.currency_code,
+                      })} billed to account · PO ${
+                        (payment.data?.po_number as string) ?? "-"
+                      } · due per your terms`
                     : `${convertToLocale({
                         amount: payment.amount,
                         currency_code: order.currency_code,

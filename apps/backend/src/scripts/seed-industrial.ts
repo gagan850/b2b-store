@@ -307,7 +307,7 @@ export default async function seedIndustrial({ container }: ExecArgs) {
             name: "United States",
             currency_code: "usd",
             countries: ["us"],
-            payment_providers: ["pp_system_default"],
+            payment_providers: ["pp_system_default", "pp_account_account"],
             automatic_taxes: true,
           },
         ],
@@ -317,6 +317,18 @@ export default async function seedIndustrial({ container }: ExecArgs) {
       input: [{ country_code: "us", provider_id: "tp_system" }],
     })
     logger.info("Created US region")
+  }
+
+  // Ship to the US from the existing warehouse
+  const fulfillmentService = container.resolve(Modules.FULFILLMENT)
+  const zones = await fulfillmentService.listServiceZones({}, { relations: ["geo_zones"] })
+  if (zones.length && !zones.some((z) => z.geo_zones?.some((g) => g.country_code === "us"))) {
+    await fulfillmentService.createGeoZones({
+      service_zone_id: zones[0].id,
+      type: "country",
+      country_code: "us",
+    })
+    logger.info("Added US to shipping zone")
   }
 
   const { data: existingCats } = await query.graph({
