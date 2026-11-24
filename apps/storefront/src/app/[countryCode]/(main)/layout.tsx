@@ -8,7 +8,7 @@ import {
 } from "@/modules/layout/components/session-banners"
 import Footer from "@/modules/layout/templates/footer"
 import { NavigationHeader } from "@/modules/layout/templates/nav"
-import { ArrowUpRightMini, ExclamationCircleSolid } from "@medusajs/icons"
+import { BRAND } from "@/lib/brand"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -28,22 +28,15 @@ export default async function PageLayout(props: {
   return (
     <SessionProvider session={session}>
       <NavigationHeader currencyCode={region?.currency_code} />
-      <div className="flex items-center text-neutral-50 justify-center small:p-4 p-2 text-center bg-neutral-900 small:gap-2 gap-1 text-sm">
-        <div className="flex flex-col small:flex-row small:gap-2 gap-1 items-center">
-          <span className="flex items-center gap-1">
-            <ExclamationCircleSolid className="inline" color="#A1A1AA" />
-            Build your own B2B store with this starter:
-          </span>
-
-          <a
-            className="group hover:text-ui-fg-interactive-hover text-ui-fg-interactive self-end small:self-auto"
-            href="https://cloud.medusajs.com"
-            target="_blank"
-          >
-            Deploy to Medusa Cloud
-            <ArrowUpRightMini className="group-hover:text-ui-fg-interactive-hover inline text-ui-fg-interactive" />
-          </a>
-        </div>
+      <div className="border-b border-brand-line bg-brand-accent-light text-[13px] text-brand-ink">
+        <ul className="content-container flex flex-wrap items-center justify-center gap-x-8 gap-y-1 py-2">
+          {BRAND.promo.map((p) => (
+            <li key={p} className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-accent" />
+              <span className="font-medium">{p}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <SessionCartMismatchBanner />

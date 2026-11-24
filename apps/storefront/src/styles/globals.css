@@ -110,3 +110,70 @@
     @apply text-[32px] leading-[44px] font-semibold;
   }
 }
+
+/* ---------- Brand theme ----------
+   Change the values here (and the `brand` colors in tailwind.config.js)
+   to apply your own brand kit. These override Medusa UI's tokens, so
+   buttons, links, focus rings and inputs pick up the brand automatically. */
+:root[data-mode="light"] {
+  --brand-navy: 11 31 63;
+  --brand-blue: 21 86 201;
+  --brand-accent: 242 140 27;
+
+  --fg-interactive: rgba(21, 86, 201, 1);
+  --fg-interactive-hover: rgba(15, 67, 160, 1);
+  --bg-interactive: rgba(21, 86, 201, 1);
+  --border-interactive: rgba(21, 86, 201, 1);
+  --button-inverted: rgba(21, 86, 201, 1);
+  --button-inverted-hover: rgba(15, 67, 160, 1);
+  --button-inverted-pressed: rgba(11, 52, 128, 1);
+  --buttons-inverted: 0px 1px 2px 0px rgba(11, 31, 63, 0.3), 0px 0px 0px 1px rgba(15, 67, 160, 1);
+  --borders-interactive-with-active: 0px 0px 0px 4px rgba(21, 86, 201, 0.2), 0px 0px 0px 1px rgba(21, 86, 201, 1);
+  --borders-focus: 0px 0px 0px 1px rgba(255, 255, 255, 1), 0px 0px 0px 3px rgba(21, 86, 201, 0.6);
+  --bg-subtle: rgba(243, 245, 249, 1);
+  --fg-base: rgba(26, 34, 51, 1);
+  --border-base: rgba(214, 220, 230, 1);
+}
+
+body {
+  @apply bg-brand-canvas text-brand-ink;
+}
+
+@layer components {
+  /* Header on dark navy: make the starter's icon buttons readable */
+  .nav-dark button,
+  .nav-dark a {
+    @apply text-white;
+  }
+  .nav-dark button:hover {
+    @apply bg-white/10;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-accent-dark;
+  }
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue-dark;
+  }
+  .panel {
+    @apply rounded-md border border-brand-line bg-white;
+  }
+  .panel-title {
+    @apply bg-brand-navy px-4 py-2 text-xs font-bold uppercase tracking-wide text-white;
+  }
+
+  /* Colour-coded status chips: ok / warn / bad / info / neutral */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide;
+  }
+  .chip-ok { @apply bg-status-ok-bg text-status-ok; }
+  .chip-warn { @apply bg-status-warn-bg text-status-warn; }
+  .chip-bad { @apply bg-status-bad-bg text-status-bad; }
+  .chip-info { @apply bg-status-info-bg text-status-info; }
+  .chip-neutral { @apply bg-status-neutral-bg text-status-neutral; }
+}
+
+/* Starter icons hard-code a grey fill; on the dark header use the text colour */
+.nav-dark svg [fill]:not([fill="none"]):not([fill="white"]):not([fill="#fff"]):not([fill="#FFF"]) {
+  fill: currentColor;
+}

@@ -11,6 +11,33 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        brand: {
+          navy: "#0B1F3F",
+          "navy-2": "#13305F",
+          blue: "#1556C9",
+          "blue-dark": "#0F43A0",
+          "blue-light": "#E8F0FC",
+          accent: "#F28C1B",
+          "accent-dark": "#D9760A",
+          "accent-light": "#FFF4E5",
+          ink: "#1A2233",
+          line: "#D6DCE6",
+          canvas: "#F3F5F9",
+        },
+        status: {
+          ok: "#16A34A",
+          "ok-bg": "#DCFCE7",
+          warn: "#D97706",
+          "warn-bg": "#FEF3C7",
+          bad: "#DC2626",
+          "bad-bg": "#FEE2E2",
+          info: "#1556C9",
+          "info-bg": "#E8F0FC",
+          neutral: "#475569",
+          "neutral-bg": "#E2E8F0",
+        },
+      },
       maxWidth: {
         "8xl": "100rem",
       },

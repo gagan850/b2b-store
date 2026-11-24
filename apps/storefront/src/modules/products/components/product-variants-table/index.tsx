@@ -98,10 +98,10 @@ const ProductVariantsTable = ({
       }}
     >
       <div className="overflow-x-auto p-px">
-        <Table className="w-full rounded-xl overflow-hidden shadow-borders-base border-none ">
+        <Table className="w-full rounded-md overflow-hidden border border-brand-line">
           <Table.Header className="border-t-0">
-            <Table.Row className="bg-neutral-100 border-none hover:!bg-neutral-100">
-              <Table.HeaderCell className="px-4">SKU</Table.HeaderCell>
+            <Table.Row className="!bg-brand-navy border-none hover:!bg-brand-navy [&_th]:!text-white [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide">
+              <Table.HeaderCell className="px-4">Item #</Table.HeaderCell>
               {product.options?.map((option) => {
                 if (option.title === "Default option") {
                   return null
@@ -135,7 +135,7 @@ const ProductVariantsTable = ({
                     "border-b-0": index === product.variants?.length! - 1,
                   })}
                 >
-                  <Table.Cell className="px-4">{variant.sku}</Table.Cell>
+                  <Table.Cell className="px-4 font-semibold text-brand-blue">{variant.sku}</Table.Cell>
                   {variant.options?.map((option, index) => {
                     if (option.value === "Default option value") {
                       return null
@@ -146,11 +146,15 @@ const ProductVariantsTable = ({
                       </Table.Cell>
                     )
                   })}
-                  <Table.Cell className="px-4 border-x">
+                  <Table.Cell className="px-4 border-x font-bold text-brand-navy">
                     {variantPrice?.calculated_price}
                   </Table.Cell>
                   <Table.Cell className="px-4 border-x">
-                    {isVariantInStock(variant) ? "In stock" : "Out of stock"}
+                    {isVariantInStock(variant) ? (
+                      <span className="chip chip-ok">In stock</span>
+                    ) : (
+                      <span className="chip chip-bad">Out of stock</span>
+                    )}
                   </Table.Cell>
                   <Table.Cell className="pl-1 !pr-1">
                     <BulkTableQuantity

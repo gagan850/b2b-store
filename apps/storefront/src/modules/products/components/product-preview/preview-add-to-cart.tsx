@@ -37,7 +37,7 @@ const PreviewAddToCart = ({
   }
   return (
     <Button
-      className="rounded-full p-3 border-none shadow-none"
+      className="!rounded-md !bg-brand-accent hover:!bg-brand-accent-dark px-3 py-2 border-none shadow-none font-semibold"
       aria-label={`Add ${product.title} to cart`}
       onClick={(e) => {
         e.preventDefault()
@@ -46,6 +46,7 @@ const PreviewAddToCart = ({
       isLoading={isAdding}
     >
       <ShoppingBag fill="#fff" />
+      <span className="hidden xsmall:inline">Add</span>
     </Button>
   )
 }

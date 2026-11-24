@@ -1,21 +1,18 @@
+import { listProducts } from "@/lib/data/products"
+import { getRegion } from "@/lib/data/regions"
 import CategoryBreadcrumb from "@/modules/categories/category-breadcrumb"
-import Button from "@/modules/common/components/button"
-import LocalizedClientLink from "@/modules/common/components/localized-client-link"
-import SkeletonProductGrid from "@/modules/skeletons/templates/skeleton-product-grid"
-import RefinementList from "@/modules/store/components/refinement-list"
+import CategorySidebar, {
+  childrenOf,
+} from "@/modules/categories/components/category-sidebar"
+import ProductFamilyTable from "@/modules/categories/components/product-family-table"
+import SubcategoryTiles from "@/modules/categories/components/subcategory-tiles"
 import { SortOptions } from "@/modules/store/components/refinement-list/sort-products"
-import PaginatedProducts from "@/modules/store/templates/paginated-products"
-import { ArrowUturnLeft } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
-import { Container, Text } from "@medusajs/ui"
 import { notFound } from "next/navigation"
-import { Suspense } from "react"
 
-export default function CategoryTemplate({
+export default async function CategoryTemplate({
   categories,
   currentCategory,
-  sortBy,
-  page,
   countryCode,
 }: {
   categories: HttpTypes.StoreProductCategory[]
@@ -24,63 +21,65 @@ export default function CategoryTemplate({
   page?: string
   countryCode: string
 }) {
-  const pageNumber = page ? parseInt(page) : 1
-  const sort = sortBy || "created_at"
-
   if (!currentCategory || !countryCode) notFound()
 
+  const children = childrenOf(categories, currentCategory.id)
+  const isLeaf = children.length === 0
+  const region = await getRegion(countryCode)
+
+  const products =
+    isLeaf && region
+      ? (
+          await listProducts({
+            countryCode,
+            queryParams: {
+              category_id: [currentCategory.id],
+              limit: 50,
+              fields:
+                "*variants.calculated_price,*variants.options,*variants.prices,*options",
+            } as any,
+          })
+        ).response.products
+      : []
+
   return (
-    <div className="bg-neutral-100">
-      <div
-        className="flex flex-col py-6 content-container gap-4"
-        data-testid="category-container"
-      >
-        <CategoryBreadcrumb
-          categories={categories}
-          category={currentCategory}
-        />
-        <div className="flex flex-col small:flex-row small:items-start gap-3">
-          <RefinementList
-            sortBy={sort}
-            categories={categories}
-            currentCategory={currentCategory}
-            listName={currentCategory.name}
-            data-testid="sort-by-container"
-            hideOptionsPicker
-          />
-          <div className="w-full">
-            {currentCategory.products?.length === 0 ? (
-              <Container className="flex flex-col gap-2 justify-center text-center items-center text-sm text-neutral-500">
-                <Text className="font-medium">
-                  No products found for this category.
-                </Text>
-                <LocalizedClientLink
-                  href="/store"
-                  className="flex gap-2 items-center"
-                >
-                  <Button variant="secondary">
-                    Back to all products
-                    <ArrowUturnLeft className="w-4 h-4" />
-                  </Button>
-                </LocalizedClientLink>
-              </Container>
+    <div className="content-container flex flex-col gap-4 py-4" data-testid="category-container">
+      <nav className="text-sm">
+        <CategoryBreadcrumb categories={categories} category={currentCategory} />
+      </nav>
+      <div className="flex flex-col gap-4 small:flex-row small:items-start">
+        <CategorySidebar categories={categories} current={currentCategory} />
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <header className="panel flex items-center gap-4 p-5">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-brand-accent-light text-3xl">
+              {(currentCategory.metadata?.icon as string) ?? "📦"}
+            </span>
+            <div>
+              <h1 className="text-2xl font-black text-brand-navy small:text-3xl">
+                {currentCategory.name}
+              </h1>
+              <p className="text-sm text-neutral-600">
+                {currentCategory.description ||
+                  (isLeaf
+                    ? `${products.length} product families · prices drop at higher quantities`
+                    : `Choose a category: ${children.map((c) => c.name).join(", ")}`)}
+              </p>
+            </div>
+          </header>
+
+          {isLeaf ? (
+            products.length ? (
+              products.map((p) => (
+                <ProductFamilyTable key={p.id} product={p} region={region!} />
+              ))
             ) : (
-              <Suspense
-                fallback={
-                  <SkeletonProductGrid
-                    count={currentCategory.products?.length}
-                  />
-                }
-              >
-                <PaginatedProducts
-                  sortBy={sort}
-                  page={pageNumber}
-                  categoryId={currentCategory.id}
-                  countryCode={countryCode}
-                />
-              </Suspense>
-            )}
-          </div>
+              <div className="panel p-8 text-center text-sm text-neutral-500">
+                No products in this category yet.
+              </div>
+            )
+          ) : (
+            <SubcategoryTiles categories={categories} parent={currentCategory} />
+          )}
         </div>
       </div>
     </div>

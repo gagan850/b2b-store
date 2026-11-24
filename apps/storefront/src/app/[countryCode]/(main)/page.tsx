@@ -2,11 +2,8 @@ import { listRegions } from "@/lib/data/regions"
 import { toJsonLd } from "@/lib/util/product-structured-data"
 import { getSiteOrigin, listCountryCodes, STORE_NAME } from "@/lib/util/site"
 import { buildRegionsReturnPolicies } from "@/lib/util/store-policies"
-import FeaturedProducts from "@/modules/home/components/featured-products"
 import Hero from "@/modules/home/components/hero"
-import SkeletonFeaturedProducts from "@/modules/skeletons/templates/skeleton-featured-products"
 import { Metadata } from "next"
-import { Suspense } from "react"
 
 export const dynamic = "force-static"
 export const revalidate = 60
@@ -18,9 +15,9 @@ export async function generateMetadata(props: {
   const [origin, regions] = await Promise.all([getSiteOrigin(), listRegions()])
 
   return {
-    title: "Medusa Next.js Starter Template",
+    title: STORE_NAME,
     description:
-      "A performant frontend ecommerce starter template with Next.js 14 and Medusa.",
+      "Shipping, packaging and facility supplies for business.",
     alternates: {
       canonical: `${origin}/${countryCode}`,
       languages: {
@@ -73,15 +70,12 @@ export default async function Home(props: {
   ]
 
   return (
-    <div className="flex flex-col gap-y-2 m-2">
+    <div className="flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: toJsonLd(structuredData) }}
       />
-      <Hero />
-      <Suspense fallback={<SkeletonFeaturedProducts />}>
-        <FeaturedProducts countryCode={countryCode} />
-      </Suspense>
+      <Hero countryCode={countryCode} />
     </div>
   )
 }

@@ -11,14 +11,13 @@ const Button = ({
   const className = clx(classNameProp, {
     "!shadow-borders-base !border-none":
       variant === "secondary" || props.disabled,
-    "!shadow-none bg-neutral-900 text-white":
+    "!shadow-none !bg-brand-blue hover:!bg-brand-blue-dark text-white font-semibold":
       variant === "primary" && !props.disabled,
     "!shadow-none bg-transparent text-neutral-900": variant === "transparent",
   })
-  console.log(className)
   return (
     <MedusaButton
-      className={`!rounded-full text-sm font-normal ${className}`}
+      className={`!rounded-md text-sm ${className}`}
       variant={variant}
       {...props}
     >

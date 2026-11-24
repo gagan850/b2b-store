@@ -32,20 +32,20 @@ const ProductHitCard = ({
     <LocalizedClientLink href={`/products/${hit.handle}`} className="group">
       <div
         data-testid="product-wrapper"
-        className="flex flex-col gap-4 relative aspect-[3/5] w-full overflow-hidden p-4 bg-white shadow-borders-base rounded-lg group-hover:shadow-[0_0_0_4px_rgba(0,0,0,0.1)] transition-shadow ease-in-out duration-150"
+        className="flex h-full flex-col gap-2 overflow-hidden rounded-md border border-brand-line bg-white p-3 transition-all duration-150 group-hover:border-brand-blue group-hover:shadow-md"
       >
-        <div className="w-full h-full p-10">
+        <div className="relative aspect-square w-full p-4">
           <Thumbnail thumbnail={hit.thumbnail as string | null} size="square" />
         </div>
 
         <div className="flex flex-col txt-compact-medium">
-          <Text className="text-ui-fg-base" data-testid="product-title">
+          <Text className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-brand-blue group-hover:underline" data-testid="product-title">
             {hit.title}
           </Text>
         </div>
 
         {pricing.min_price !== null && (
-          <div className="flex flex-col gap-0">
+          <div className="mt-auto flex flex-col gap-0">
             <div className="flex items-center gap-x-2">
               {/* A range already spans the discount, so the struck-through
                   original would describe only the cheapest variant. */}
@@ -55,8 +55,8 @@ const ProductHitCard = ({
                 </Text>
               )}
               <Text
-                className={clx("text-neutral-950 font-medium", {
-                  "text-ui-fg-interactive": pricing.on_sale,
+                className={clx("text-brand-navy font-black text-base", {
+                  "!text-status-bad": pricing.on_sale,
                 })}
               >
                 {isRange
@@ -69,9 +69,10 @@ const ProductHitCard = ({
                 </Text>
               )}
             </div>
-            <Text className="text-neutral-600 text-[0.6rem]">Excl. VAT</Text>
+            <Text className="text-neutral-500 text-[10px]">Excl. tax · per unit</Text>
           </div>
         )}
+        <span className="btn-accent mt-1 w-full py-1.5">View options</span>
       </div>
     </LocalizedClientLink>
   )

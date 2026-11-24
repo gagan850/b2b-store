@@ -9,17 +9,22 @@ type ProductInfoProps = {
 const ProductInfo = ({ product }: ProductInfoProps) => {
   return (
     <div id="product-info">
-      <div className="flex flex-col gap-y-4 w-full">
+      <div className="flex flex-col gap-y-2 w-full">
+        {product.variants?.[0]?.sku && (
+          <span className="text-xs font-semibold text-neutral-500">
+            Item # {product.variants[0].sku}
+          </span>
+        )}
         <Heading
           level="h1"
-          className="text-[2.5rem] leading-10 text-ui-fg-base"
+          className="text-2xl small:text-3xl font-black leading-tight text-brand-navy"
           data-testid="product-title"
         >
           {product.title}
         </Heading>
 
         <Text
-          className="text-2xl text-ui-fg-subtle whitespace-pre-line"
+          className="text-base text-ui-fg-subtle whitespace-pre-line"
           data-testid="product-description"
         >
           {product.subtitle}

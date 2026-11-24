@@ -81,21 +81,21 @@ const MegaMenu = ({
         className="z-50"
       >
         <LocalizedClientLink
-          className="hover:text-ui-fg-base hover:bg-neutral-100 rounded-full px-3 py-2"
+          className="flex items-center gap-1 rounded px-3 py-2 hover:bg-white/10"
           href="/store"
         >
-          Products
+          ☰ Shop by Category
         </LocalizedClientLink>
         {isHovered && (
-          <div className="fixed left-0 right-0 top-[60px] flex gap-32 py-10 px-20 bg-white border-b border-neutral-200 ">
+          <div className="fixed left-0 right-0 top-[144px] flex gap-32 py-8 px-20 bg-white border-b-4 border-brand-accent shadow-lg font-normal [&_a]:!text-brand-ink">
             <div className="flex flex-col gap-2">
               {mainCategories.map((category) => (
                 <LocalizedClientLink
                   key={category.id}
                   href={`/categories/${category.handle}`}
                   className={clx(
-                    "hover:bg-neutral-100 hover:cursor-pointer rounded-full px-3 py-2 w-fit font-medium",
-                    selectedCategory === category.id && "bg-neutral-100"
+                    "hover:bg-brand-blue-light hover:cursor-pointer rounded px-3 py-2 w-56 font-semibold",
+                    selectedCategory === category.id && "bg-brand-blue-light"
                   )}
                   onMouseEnter={() => handleCategoryHover(category.id)}
                   onMouseLeave={handleCategoryLeave}
@@ -133,7 +133,7 @@ const MegaMenu = ({
         )}
       </div>
       {isHovered && (
-        <div className="fixed inset-0 mt-[60px] blur-sm backdrop-blur-sm z-[-1]" />
+        <div className="fixed inset-0 mt-[144px] blur-sm backdrop-blur-sm z-[-1]" />
       )}
     </>
   )

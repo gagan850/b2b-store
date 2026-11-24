@@ -27,13 +27,22 @@ export default async function ProductPreview({
     return acc + (variant?.inventory_quantity || 0)
   }, 0)
 
+  const itemNumber = product.variants?.[0]?.sku
+  const variantCount = product.variants?.length ?? 0
+  const stock =
+    inventoryQuantity === 0
+      ? { label: "Out of stock", cls: "chip-bad" }
+      : inventoryQuantity && inventoryQuantity <= 50
+      ? { label: `Low stock · ${inventoryQuantity}`, cls: "chip-warn" }
+      : { label: "In stock", cls: "chip-ok" }
+
   return (
     <LocalizedClientLink href={`/products/${product.handle}`} className="group">
       <div
         data-testid="product-wrapper"
-        className="flex flex-col gap-4 relative aspect-[3/5] w-full overflow-hidden p-4 bg-white shadow-borders-base rounded-lg group-hover:shadow-[0_0_0_4px_rgba(0,0,0,0.1)] transition-shadow ease-in-out duration-150"
+        className="flex h-full flex-col gap-2 overflow-hidden rounded-md border border-brand-line bg-white p-3 transition-all duration-150 group-hover:border-brand-blue group-hover:shadow-md"
       >
-        <div className="w-full h-full p-10">
+        <div className="relative aspect-square w-full p-4">
           <Thumbnail
             thumbnail={product.thumbnail}
             images={product.images}
@@ -42,36 +51,26 @@ export default async function ProductPreview({
             isFeatured={isFeatured}
           />
         </div>
-        <div className="flex flex-col txt-compact-medium">
-          <Text className="text-neutral-600 text-xs">BRAND</Text>
-          <Text className="text-ui-fg-base" data-testid="product-title">
-            {product.title}
+        {itemNumber && (
+          <Text className="text-[11px] font-semibold text-neutral-500">
+            Item # {itemNumber}
+            {variantCount > 1 ? ` + ${variantCount - 1} more` : ""}
           </Text>
-        </div>
-        <div className="flex flex-col gap-0">
-          {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
-          <Text className="text-neutral-600 text-[0.6rem]">Excl. VAT</Text>
-        </div>
-        <div className="flex justify-between">
-          <div className="flex flex-row gap-1 items-center">
-            <span
-              className={clx({
-                "text-green-500": inventoryQuantity && inventoryQuantity > 50,
-                "text-orange-500":
-                  inventoryQuantity &&
-                  inventoryQuantity <= 50 &&
-                  inventoryQuantity > 0,
-                "text-red-500": inventoryQuantity === 0,
-              })}
-            >
-              •
-            </span>
-            <Text className="text-neutral-600 text-xs">
-              {inventoryQuantity} left
-            </Text>
+        )}
+        <Text
+          className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-brand-blue group-hover:underline"
+          data-testid="product-title"
+        >
+          {product.title}
+        </Text>
+        <div className="mt-auto flex items-end justify-between gap-2">
+          <div className="flex flex-col">
+            {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
+            <Text className="text-[10px] text-neutral-500">Excl. tax · per unit</Text>
           </div>
           <PreviewAddToCart product={product} region={region} />
         </div>
+        <span className={clx("chip w-fit", stock.cls)}>{stock.label}</span>
       </div>
     </LocalizedClientLink>
   )

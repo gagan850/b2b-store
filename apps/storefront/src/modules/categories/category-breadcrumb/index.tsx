@@ -12,7 +12,7 @@ const CategoryBreadcrumbItem = ({
   return (
     <li className="text-neutral-500" key={handle}>
       <LocalizedClientLink
-        className="hover:text-neutral-900"
+        className="text-brand-blue hover:underline"
         href={handle ? `/categories/${handle}` : "/store"}
       >
         {title}
@@ -76,7 +76,7 @@ const CategoryBreadcrumb = ({
     )
 
     breadcrumbs.unshift(
-      <CategoryBreadcrumbItem title="Products" key={`base`} />
+      <CategoryBreadcrumbItem title="All Products" key={`base`} />
     )
 
     return breadcrumbs
