@@ -1,193 +1,250 @@
-import { listCategories } from "@/lib/data/categories"
 import { BRAND } from "@/lib/brand"
-import LocalizedClientLink from "@/modules/common/components/localized-client-link"
+import { listCategories } from "@/lib/data/categories"
+import { listProducts } from "@/lib/data/products"
+import { getRegion } from "@/lib/data/regions"
 import { childrenOf } from "@/modules/categories/components/category-sidebar"
-import SubcategoryTiles from "@/modules/categories/components/subcategory-tiles"
+import { categoryImage } from "@/modules/categories/components/subcategory-tiles"
+import LocalizedClientLink from "@/modules/common/components/localized-client-link"
+import ProductPreview from "@/modules/products/components/product-preview"
+import { HttpTypes } from "@medusajs/types"
 
-const accountLinks = [
-  { label: "Reorder past purchases", href: "/account/orders" },
-  { label: "Track an order", href: "/account/orders" },
-  { label: "My quotes", href: "/account/quotes" },
-  { label: "Approvals", href: "/account/approvals" },
-  { label: "Company & buyers", href: "/account/company" },
-]
+type Cat = HttpTypes.StoreProductCategory
 
-const valueProps = [
+/* Simple line icons, so the page carries no emoji */
+const Icon = ({ d }: { d: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className="h-6 w-6 shrink-0 text-brand-blue"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d={d} />
+  </svg>
+)
+
+const services = [
   {
-    title: "Ready to ship",
-    body: "Stocked packaging shipped from the warehouse nearest you.",
-    color: "bg-status-ok-bg text-status-ok",
-    icon: "🚚",
+    title: "Ships today",
+    body: "In-stock orders placed by 2 PM CT",
+    icon: "M3 7h11v9H3zM14 10h4l3 3v3h-7M7.5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z",
   },
   {
-    title: "Net 30 terms",
-    body: "Bill to your account, or pay by card. Credit checks in minutes.",
-    color: "bg-status-info-bg text-status-info",
-    icon: "🧾",
+    title: "Will call",
+    body: "Pick up at Los Angeles, Dallas or Edison",
+    icon: "M3 10l9-6 9 6v10H3zM9 20v-6h6v6",
+  },
+  {
+    title: "Bill to account",
+    body: "Net terms for business accounts, or pay by card",
+    icon: "M6 3h9l3 3v15H6zM9 9h6M9 13h6M9 17h4",
   },
   {
     title: "Volume pricing",
-    body: "Price breaks by quantity and contract pricing for your company.",
-    color: "bg-brand-accent-light text-brand-accent-dark",
-    icon: "📦",
-  },
-  {
-    title: "Custom quotes",
-    body: "Request a quote from your cart and get a reply within one business day.",
-    color: "bg-status-warn-bg text-status-warn",
-    icon: "💬",
+    body: "Price breaks on every item, quotes in one day",
+    icon: "M20 12l-8 8-9-9V3h8zM7.5 7.5h.01",
   },
 ]
 
+/** All leaf categories under a department, in order */
+const leavesOf = (all: Cat[], id: string): Cat[] =>
+  childrenOf(all, id).flatMap((c) => {
+    const kids = childrenOf(all, c.id)
+    return kids.length ? leavesOf(all, c.id) : [c]
+  })
+
 export default async function Hero({ countryCode }: { countryCode: string }) {
-  const all = await listCategories({ limit: 200 }).catch(() => [])
-  const categories = childrenOf(all, null)
+  const [all, region] = await Promise.all([
+    listCategories({ limit: 200 }).catch(() => [] as Cat[]),
+    getRegion(countryCode),
+  ])
+  const departments = childrenOf(all, null)
+  const products = region
+    ? (
+        await listProducts({ countryCode, queryParams: { limit: 6 } }).catch(() => ({
+          response: { products: [] as HttpTypes.StoreProduct[] },
+        }))
+      ).response.products
+    : []
 
   return (
-    <div className="content-container flex flex-col gap-4 py-4">
-      <div className="grid grid-cols-1 gap-4 small:grid-cols-[240px_1fr_280px]">
-        {/* Category sidebar */}
-        <aside className="panel relative hidden small:block">
-          <div className="panel-title rounded-t-md">Shop by Category</div>
-          <ul className="divide-y divide-brand-line text-sm">
-            {categories.map((c) => (
-              <li key={c.id} className="group">
-                <LocalizedClientLink
-                  href={`/categories/${c.handle}`}
-                  className="flex items-center justify-between px-4 py-2.5 hover:bg-brand-blue-light hover:text-brand-blue group-hover:bg-brand-blue-light group-hover:text-brand-blue"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{(c.metadata?.icon as string) ?? "•"}</span>
-                    {c.name}
-                  </span>
-                  <span className="text-neutral-400">›</span>
-                </LocalizedClientLink>
-                {/* Flyout: drill into sub-categories without leaving the page */}
-                <div className="absolute left-full top-0 z-30 hidden min-h-full w-[560px] border-l-4 border-brand-accent bg-white p-6 shadow-xl group-hover:block">
-                  <p className="mb-4 text-lg font-black text-brand-navy">{c.name}</p>
-                  <div className="grid grid-cols-2 gap-6">
-                    {childrenOf(all, c.id).map((sub) => (
-                      <div key={sub.id} className="flex flex-col gap-1">
-                        <LocalizedClientLink
-                          href={`/categories/${sub.handle}`}
-                          className="font-bold text-brand-ink hover:text-brand-blue hover:underline"
-                        >
-                          {sub.name}
-                        </LocalizedClientLink>
-                        {childrenOf(all, sub.id).map((leaf) => (
-                          <LocalizedClientLink
-                            key={leaf.id}
-                            href={`/categories/${leaf.handle}`}
-                            className="text-sm text-brand-blue hover:underline"
-                          >
-                            {leaf.name}
-                          </LocalizedClientLink>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </li>
-            ))}
-            <li>
-              <LocalizedClientLink
-                href="/store"
-                className="block px-4 py-2.5 font-semibold text-brand-blue hover:underline"
-              >
-                View all products ›
-              </LocalizedClientLink>
-            </li>
-          </ul>
-        </aside>
-
-        {/* Banner */}
-        <section className="relative overflow-hidden rounded-md bg-gradient-to-br from-brand-navy via-brand-navy-2 to-brand-blue p-6 text-white xsmall:p-8 small:p-12">
-          <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-accent/20" />
-          <div className="absolute -bottom-24 right-24 h-48 w-48 rounded-full bg-white/5" />
-          <div className="relative flex h-full max-w-xl flex-col justify-center gap-4">
-            <span className="chip w-fit bg-brand-accent text-white">
-              Wholesale pricing for business accounts
-            </span>
-            <h1 className="font-condensed text-3xl font-bold leading-tight xsmall:text-4xl small:text-5xl">
-              {BRAND.slogan}
-            </h1>
-            <p className="text-white/80">{BRAND.tagline}.</p>
-            <div className="flex flex-col gap-3 pt-2 xsmall:flex-row xsmall:flex-wrap">
-              <LocalizedClientLink href="/store" className="btn-accent px-6 py-3 text-center">
-                Shop all products
-              </LocalizedClientLink>
-              <LocalizedClientLink
-                href="/account/quotes"
-                className="inline-flex items-center justify-center rounded-md border border-white/40 px-6 py-3 text-sm font-semibold hover:bg-white/10"
-              >
-                Request a quote
-              </LocalizedClientLink>
-            </div>
-          </div>
-        </section>
-
-        {/* Quick order + account */}
-        <div className="flex flex-col gap-4">
-          <form
-            action={`/${countryCode}/search`}
-            className="panel overflow-hidden"
-          >
-            <div className="panel-title">Quick Order</div>
-            <div className="flex flex-col gap-2 p-4">
-              <label className="text-xs font-semibold text-neutral-600" htmlFor="qo">
-                Item # or keyword
-              </label>
-              <input
-                id="qo"
-                name="q"
-                placeholder="e.g. S-4021"
-                className="rounded border border-brand-line px-3 py-2 text-sm outline-none focus:border-brand-blue"
-              />
-              <button type="submit" className="btn-brand w-full">
-                Find item
-              </button>
-            </div>
-          </form>
-          <div className="panel hidden overflow-hidden small:block">
-            <div className="panel-title">My Account</div>
-            <ul className="divide-y divide-brand-line text-sm">
-              {accountLinks.map((l) => (
-                <li key={l.label}>
-                  <LocalizedClientLink
-                    href={l.href}
-                    className="block px-4 py-2 text-brand-blue hover:bg-brand-blue-light"
-                  >
-                    {l.label}
-                  </LocalizedClientLink>
-                </li>
-              ))}
-            </ul>
+    <div className="content-container flex flex-col gap-8 py-6">
+      {/* 1. Banner with quick order */}
+      <section className="grid grid-cols-1 overflow-hidden rounded-md bg-gradient-to-br from-brand-navy via-brand-navy-2 to-brand-blue text-white small:grid-cols-[1fr_340px]">
+        <div className="flex flex-col justify-center gap-4 p-6 xsmall:p-8 small:p-10">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-accent">
+            Wholesale packaging for business
+          </p>
+          <h1 className="font-condensed text-3xl font-bold leading-tight xsmall:text-4xl small:text-[44px]">
+            {BRAND.slogan}
+          </h1>
+          <p className="max-w-lg text-white/80">{BRAND.tagline}.</p>
+          <div className="flex flex-col gap-3 pt-1 xsmall:flex-row">
+            <LocalizedClientLink href="/store" className="btn-accent px-6 py-3 text-center">
+              Shop all products
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              href="/account/quotes"
+              className="inline-flex items-center justify-center rounded-md border border-white/40 px-6 py-3 text-sm font-semibold hover:bg-white/10"
+            >
+              Request a quote
+            </LocalizedClientLink>
           </div>
         </div>
-      </div>
+        <form
+          action={`/${countryCode}/search`}
+          className="flex flex-col justify-center gap-3 bg-white p-6 text-brand-ink small:m-6 small:rounded-md"
+        >
+          <h2 className="text-lg font-bold text-brand-navy">Quick order</h2>
+          <label className="text-sm text-neutral-600" htmlFor="qo">
+            Know the item number? Find it fast.
+          </label>
+          <input
+            id="qo"
+            name="q"
+            placeholder="Item # or keyword, e.g. S-4121"
+            className="rounded-md border border-brand-line px-3 py-2.5 text-sm outline-none focus:border-brand-blue"
+          />
+          <button type="submit" className="btn-brand w-full py-2.5">
+            Find item
+          </button>
+          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 border-t border-brand-line pt-3 text-sm">
+            <LocalizedClientLink href="/account/orders" className="font-semibold text-brand-blue hover:underline">
+              Reorder past purchases
+            </LocalizedClientLink>
+            <LocalizedClientLink href="/account/orders" className="text-brand-blue hover:underline">
+              Track an order
+            </LocalizedClientLink>
+          </div>
+        </form>
+      </section>
 
-      {/* Value props */}
-      <ul className="grid grid-cols-1 gap-4 xsmall:grid-cols-2 small:grid-cols-4">
-        {valueProps.map((v) => (
-          <li key={v.title} className="border-l-4 border-brand-accent bg-white px-4 py-3">
+      {/* 2. Why buy from LK */}
+      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-md bg-brand-line small:grid-cols-4">
+        {services.map((s) => (
+          <li key={s.title} className="flex items-start gap-3 bg-white px-4 py-3 small:px-5 small:py-4">
+            <Icon d={s.icon} />
             <div>
-              <p className="font-bold text-brand-navy">{v.title}</p>
-              <p className="text-xs text-neutral-600">{v.body}</p>
+              <p className="font-bold text-brand-navy">{s.title}</p>
+              <p className="text-xs text-neutral-600 small:text-sm">{s.body}</p>
             </div>
           </li>
         ))}
       </ul>
 
-      <section className="flex flex-col gap-3 pt-2">
+      {/* 3. Category directory */}
+      <section className="flex flex-col gap-4">
         <div className="flex items-end justify-between border-b-2 border-brand-navy pb-2">
-          <h2 className="text-lg font-black uppercase tracking-tight text-brand-navy">
-            Shop by Department
+          <h2 className="text-xl font-black uppercase tracking-tight text-brand-navy">
+            Shop by category
           </h2>
           <LocalizedClientLink href="/store" className="text-sm font-semibold text-brand-blue hover:underline">
-            View all products ›
+            All products ›
           </LocalizedClientLink>
         </div>
-        <SubcategoryTiles categories={all} parent={null} />
+        <div className="grid grid-cols-1 gap-4 small:grid-cols-2">
+          {departments.map((d) => {
+            const leaves = leavesOf(all, d.id)
+            return (
+              <div key={d.id} className="flex flex-col rounded-md bg-white" data-testid="department">
+                <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
+                  <LocalizedClientLink
+                    href={`/categories/${d.handle}`}
+                    className="text-lg font-bold text-brand-navy hover:text-brand-blue"
+                  >
+                    {d.name}
+                  </LocalizedClientLink>
+                  <LocalizedClientLink
+                    href={`/categories/${d.handle}`}
+                    className="text-sm font-semibold text-brand-blue hover:underline"
+                  >
+                    Shop all ›
+                  </LocalizedClientLink>
+                </div>
+                <ul className="grid grid-cols-3 gap-2 p-3 xsmall:grid-cols-4">
+                  {leaves.slice(0, 4).map((c) => {
+                    const img = categoryImage(all, c)
+                    return (
+                      <li key={c.id}>
+                        <LocalizedClientLink
+                          href={`/categories/${c.handle}`}
+                          className="group flex flex-col items-center gap-2 rounded-md p-2 text-center hover:bg-brand-canvas"
+                          data-testid="category-tile"
+                        >
+                          <span className="flex aspect-square w-full items-center justify-center">
+                            {img ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={img}
+                                alt=""
+                                className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                              />
+                            ) : null}
+                          </span>
+                          <span className="text-sm font-semibold leading-tight text-brand-ink group-hover:text-brand-blue group-hover:underline">
+                            {c.name}
+                          </span>
+                        </LocalizedClientLink>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* 4. Popular items */}
+      {region && products.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-end justify-between border-b-2 border-brand-navy pb-2">
+            <h2 className="text-xl font-black uppercase tracking-tight text-brand-navy">
+              Popular items
+            </h2>
+            <LocalizedClientLink href="/store" className="text-sm font-semibold text-brand-blue hover:underline">
+              See more ›
+            </LocalizedClientLink>
+          </div>
+          <ul className="grid grid-cols-2 gap-3 small:grid-cols-3 medium:grid-cols-6">
+            {products.map((p) => (
+              <li key={p.id}>
+                <ProductPreview product={p} region={region} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* 5. Help */}
+      <section className="grid grid-cols-1 gap-4 rounded-md bg-white p-6 small:grid-cols-3">
+        <div>
+          <h3 className="font-bold text-brand-navy">Talk to a packaging specialist</h3>
+          <p className="text-sm text-neutral-600">
+            Call <strong className="text-brand-navy">{BRAND.phone}</strong>, Monday to Friday.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-brand-navy">Need custom sizes or large volumes?</h3>
+          <p className="text-sm text-neutral-600">
+            <LocalizedClientLink href="/account/quotes" className="font-semibold text-brand-blue hover:underline">
+              Request a quote
+            </LocalizedClientLink>{" "}
+            and we reply within one business day.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-brand-navy">New to LK?</h3>
+          <p className="text-sm text-neutral-600">
+            <LocalizedClientLink href="/account" className="font-semibold text-brand-blue hover:underline">
+              Open a business account
+            </LocalizedClientLink>{" "}
+            for net terms, contract pricing and multiple buyers.
+          </p>
+        </div>
       </section>
     </div>
   )
