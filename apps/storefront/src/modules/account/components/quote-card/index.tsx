@@ -66,7 +66,7 @@ const QuoteCard = ({ quote }: QuoteCardProps) => {
 
         <div className="flex pr-2 text-small-regular items-center">
           <CalendarMini className="inline-block mr-1" />
-          {createdAt.getDate()}-{createdAt.getMonth()}-{createdAt.getFullYear()}
+          {createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
         </div>
 
         <div className="flex text-small-regular items-center">
@@ -95,7 +95,7 @@ const QuoteCard = ({ quote }: QuoteCardProps) => {
 
         <div className="pl-4">
           <LocalizedClientLink href={`/account/quotes/details/${quote.id}`}>
-            <Button variant="secondary" className="rounded-full text-xs">
+            <Button variant="secondary" className="rounded-md text-xs">
               See details
             </Button>
           </LocalizedClientLink>

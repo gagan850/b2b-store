@@ -2,10 +2,10 @@
 
 const StatusTitles: Record<string, string> = {
   accepted: "Accepted",
-  customer_rejected: "Customer Rejected",
-  merchant_rejected: "Merchant Rejected",
-  pending_merchant: "Pending Merchant",
-  pending_customer: "Pending Customer",
+  customer_rejected: "Declined by you",
+  merchant_rejected: "Declined by LK",
+  pending_merchant: "Awaiting LK reply",
+  pending_customer: "Ready for your review",
 }
 
 // Colour coding shared across the store: chip-ok / chip-warn / chip-bad / chip-info

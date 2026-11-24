@@ -46,7 +46,7 @@ const SignInPrompt = () => {
           <LocalizedClientLink href="/account?view=register">
             <Button
               variant="secondary"
-              className="small:h-10 h-8 small:min-w-36 min-w-24 rounded-full"
+              className="small:h-10 h-8 small:min-w-36 min-w-24 rounded-md"
               data-testid="sign-in-button"
             >
               Register
@@ -55,7 +55,7 @@ const SignInPrompt = () => {
           <LocalizedClientLink href="/account?view=log-in">
             <Button
               variant="primary"
-              className="small:h-10 h-8 small:min-w-36 min-w-24 rounded-full"
+              className="small:h-10 h-8 small:min-w-36 min-w-24 rounded-md"
               data-testid="sign-in-button"
             >
               Log in

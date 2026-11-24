@@ -28,9 +28,11 @@ const tiersFor = (variant: HttpTypes.StoreProductVariant, currency: string) => {
 export default function ProductFamilyTable({
   product,
   region,
+  showHeader = true,
 }: {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
+  showHeader?: boolean
 }) {
   const currency = region.currency_code
   const variants = product.variants ?? []
@@ -51,18 +53,38 @@ export default function ProductFamilyTable({
   const fmt = (n: number) => convertToLocale({ amount: n, currency_code: currency })
 
   return (
-    <section className="panel overflow-hidden">
-      <div className="flex flex-col gap-1 border-b border-brand-line p-4">
-        <LocalizedClientLink
-          href={`/products/${product.handle}`}
-          className="text-lg font-black text-brand-navy hover:text-brand-blue hover:underline"
-        >
-          {product.title}
-        </LocalizedClientLink>
-        {product.description && (
-          <p className="text-sm text-neutral-600">{product.description}</p>
-        )}
-      </div>
+    <section className="flex flex-col gap-4">
+      {showHeader && (
+        <div className="flex flex-col gap-4 xsmall:flex-row">
+          {product.thumbnail && (
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="h-32 w-32 shrink-0 self-center border border-brand-line bg-white xsmall:self-start"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={product.thumbnail} alt={product.title} className="h-full w-full object-contain" />
+            </LocalizedClientLink>
+          )}
+          <div className="flex flex-col gap-1">
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="text-xl font-bold text-brand-navy hover:text-brand-blue hover:underline"
+            >
+              {product.title}
+            </LocalizedClientLink>
+            {product.description && (
+              <p className="text-sm text-brand-ink">{product.description}</p>
+            )}
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="text-sm text-brand-blue hover:underline"
+            >
+              Details and specifications ›
+            </LocalizedClientLink>
+          </div>
+        </div>
+      )}
+      <div className="overflow-hidden border border-brand-line">
       {/* Phone: one card per item */}
       <ul className="divide-y divide-brand-line small:hidden">
         {variants.map((v) => {
@@ -126,7 +148,7 @@ export default function ProductFamilyTable({
       <div className="hidden overflow-x-auto small:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-brand-navy text-left text-[11px] uppercase tracking-wide text-white">
+            <tr className="border-b-2 border-brand-navy bg-brand-canvas text-left text-xs font-bold uppercase tracking-wide text-brand-navy">
               <th className="px-4 py-2">Item #</th>
               <th className="px-4 py-2">{optionTitle}</th>
               {tierMins.map((m, i) => (
@@ -145,7 +167,7 @@ export default function ProductFamilyTable({
               return (
                 <tr
                   key={v.id}
-                  className={idx % 2 ? "bg-brand-canvas" : "bg-white"}
+                  className={`border-b border-brand-line last:border-0 ${idx % 2 ? "bg-brand-canvas/60" : "bg-white"}`}
                 >
                   <td className="px-4 py-2 font-bold text-brand-blue">{v.sku}</td>
                   <td className="px-4 py-2">{v.title}</td>
@@ -195,6 +217,7 @@ export default function ProductFamilyTable({
             })}
           </tbody>
         </table>
+      </div>
       </div>
     </section>
   )

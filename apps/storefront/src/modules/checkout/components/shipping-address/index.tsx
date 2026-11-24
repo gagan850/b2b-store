@@ -25,7 +25,10 @@ const ShippingAddress = ({
   const pathname = usePathname()
   const [error, setError] = useState<string | null>(null)
 
-  const isOpen = searchParams.get("step") === "shipping-address"
+  const step = searchParams.get("step")
+  const hasAddress = !!cart?.shipping_address?.address_1
+  // Open the form when asked to, or when checkout starts without an address yet.
+  const isOpen = step === "shipping-address" || (!step && !hasAddress)
 
   const cartApprovalStatus = cart?.approval_status?.status
 
@@ -65,7 +68,7 @@ const ShippingAddress = ({
             className="flex flex-row text-xl gap-x-2 items-center"
           >
             Shipping Address
-            {!isOpen && <CheckCircleSolid />}
+            {!isOpen && hasAddress && <CheckCircleSolid />}
           </Heading>
 
           {!isOpen &&
@@ -104,7 +107,7 @@ const ShippingAddress = ({
         ) : (
           <div>
             <div className="text-small-regular">
-              {cart && cart.shipping_address ? (
+              {cart && hasAddress && cart.shipping_address ? (
                 <div className="flex items-start gap-x-8">
                   <div className="flex" data-testid="shipping-address-summary">
                     <Text className="txt-medium text-ui-fg-subtle">
@@ -118,9 +121,9 @@ const ShippingAddress = ({
                   </div>
                 </div>
               ) : (
-                <div>
-                  <Spinner />
-                </div>
+                <Text className="txt-medium text-ui-fg-subtle">
+                  No shipping address yet.
+                </Text>
               )}
             </div>
           </div>

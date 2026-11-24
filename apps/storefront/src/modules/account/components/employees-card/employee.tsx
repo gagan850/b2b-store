@@ -47,11 +47,11 @@ const RemoveEmployeePrompt = ({ employee }: { employee: QueryEmployee }) => {
           </Prompt.Description>
         </Prompt.Header>
         <Prompt.Footer>
-          <Prompt.Cancel className="h-10 rounded-full shadow-borders-base">
+          <Prompt.Cancel className="h-10 rounded-md shadow-borders-base">
             Cancel
           </Prompt.Cancel>
           <Prompt.Action
-            className="h-10 px-4 rounded-full shadow-none"
+            className="h-10 px-4 rounded-md shadow-none"
             onClick={handleRemove}
           >
             Remove
@@ -187,7 +187,7 @@ const Employee = ({
           <CurrencyInput
             symbol={currencySymbolMap[company.currency_code!]}
             code={company.currency_code!}
-            className="bg-white rounded-full"
+            className="bg-white rounded-md"
             name="spending_limit"
             value={employeeData.spending_limit}
             onChange={(e) => {

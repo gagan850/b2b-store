@@ -20,13 +20,15 @@ const CheckoutTotals: React.FC<{
     discount_total,
     gift_card_total,
   } = cartOrOrder
+  const shippingKnown = !!(cartOrOrder as any).shipping_methods?.length
+  const taxKnown = !!(cartOrOrder as any).shipping_address?.address_1
 
   return (
     <div>
       <div className="flex flex-col gap-y-2 txt-medium text-ui-fg-subtle ">
         <div className="flex items-center justify-between">
           <Text className="flex gap-x-1 items-center">
-            Subtotal (excl. shipping and taxes)
+            Subtotal
           </Text>
           <Text
             data-testid="cart-item-subtotal"
@@ -51,13 +53,17 @@ const CheckoutTotals: React.FC<{
         <div className="flex items-center justify-between">
           <Text>Shipping</Text>
           <Text data-testid="cart-shipping" data-value={shipping_total || 0}>
-            {convertToLocale({ amount: shipping_total ?? 0, currency_code })}
+            {shippingKnown
+              ? convertToLocale({ amount: shipping_total ?? 0, currency_code })
+              : "Next step"}
           </Text>
         </div>
         <div className="flex justify-between">
           <Text className="flex gap-x-1 items-center ">Taxes</Text>
           <Text data-testid="cart-taxes" data-value={tax_total || 0}>
-            {convertToLocale({ amount: tax_total ?? 0, currency_code })}
+            {taxKnown
+              ? convertToLocale({ amount: tax_total ?? 0, currency_code })
+              : "After address"}
           </Text>
         </div>
         {!!gift_card_total && (

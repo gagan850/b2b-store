@@ -153,9 +153,10 @@ const AccountNav = ({
           </>
         )}
       </div>
-      <div className="hidden small:block" data-testid="account-nav">
-        <div className="text-lg">
-          <ul className="flex mb-0 justify-start items-start flex-col gap-y-4">
+      <div className="hidden small:block panel overflow-hidden" data-testid="account-nav">
+        <div className="panel-title">My Account</div>
+        <div className="text-sm">
+          <ul className="flex mb-0 flex-col divide-y divide-brand-line">
             <li>
               <AccountNavLink
                 href="/account"
@@ -210,7 +211,7 @@ const AccountNav = ({
                 >
                   Approvals{" "}
                   {numPendingApprovals > 0 && (
-                    <span className="bg-blue-500 text-white text-xs px-1.5 py-px rounded-full">
+                    <span className="bg-brand-accent text-white text-xs px-1.5 py-px rounded-full">
                       {numPendingApprovals}
                     </span>
                   )}
@@ -226,10 +227,11 @@ const AccountNav = ({
                 Quotes
               </AccountNavLink>
             </li>
-            <li className="text-neutral-400 hover:text-neutral-950">
+            <li className="text-neutral-500 hover:text-red-600">
               <button
                 type="button"
                 onClick={handleLogout}
+                className="w-full px-4 py-2.5 text-left"
                 data-testid="logout-button"
               >
                 Log out
@@ -262,9 +264,9 @@ const AccountNavLink = ({
     <LocalizedClientLink
       href={href}
       className={clx(
-        "text-neutral-400 hover:text-neutral-950 flex items-center gap-x-2",
+        "flex items-center gap-x-2 px-4 py-2.5 text-brand-ink hover:bg-brand-blue-light hover:text-brand-blue",
         {
-          "text-neutral-950": active,
+          "bg-brand-blue-light font-bold text-brand-blue border-l-4 border-brand-blue": active,
         }
       )}
       data-testid={dataTestId}

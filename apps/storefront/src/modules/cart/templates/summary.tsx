@@ -56,48 +56,49 @@ const Summary = ({ customer, spendLimitExceeded }: SummaryProps) => {
         href={checkoutButtonLink}
         data-testid="checkout-button"
       >
-        <Button
-          className="w-full h-10 rounded-full shadow-none"
+        <button
+          className="btn-accent w-full h-12 text-base disabled:opacity-50"
           disabled={spendLimitExceeded}
         >
           {customer
             ? spendLimitExceeded
               ? "Spending Limit Exceeded"
-              : "Checkout"
-            : "Log in to Checkout"}
-        </Button>
+              : "Proceed to checkout"
+            : "Sign in to check out"}
+        </button>
       </LocalizedClientLink>
       {!!customer && (
         <RequestQuoteConfirmation>
           <Button
-            className="w-full h-10 rounded-full shadow-borders-base"
+            className="w-full h-10 rounded-md shadow-borders-base"
             variant="secondary"
             disabled={isPendingApproval}
           >
-            Request Quote
+            Request a quote
           </Button>
         </RequestQuoteConfirmation>
       )}
       {!customer && (
         <RequestQuotePrompt>
           <Button
-            className="w-full h-10 rounded-full shadow-borders-base"
+            className="w-full h-10 rounded-md shadow-borders-base"
             variant="secondary"
             disabled={isPendingApproval}
           >
-            Request Quote
+            Request a quote
           </Button>
         </RequestQuotePrompt>
       )}
-      <CartToCsvButton cart={cart} />
-      <Button
-        onClick={handleEmptyCart}
-        className="w-full h-10 rounded-full shadow-borders-base"
-        variant="secondary"
-        disabled={isPendingApproval}
-      >
-        Empty Cart
-      </Button>
+      <div className="flex items-center justify-center gap-4 pt-2">
+        <CartToCsvButton cart={cart} />
+        <button
+          onClick={handleEmptyCart}
+          className="text-sm text-neutral-500 hover:text-red-600 hover:underline disabled:opacity-50"
+          disabled={isPendingApproval}
+        >
+          Empty cart
+        </button>
+      </div>
     </Container>
   )
 }

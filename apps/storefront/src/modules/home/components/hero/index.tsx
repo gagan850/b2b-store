@@ -169,12 +169,7 @@ export default async function Hero({ countryCode }: { countryCode: string }) {
       {/* Value props */}
       <ul className="grid grid-cols-1 gap-4 xsmall:grid-cols-2 small:grid-cols-4">
         {valueProps.map((v) => (
-          <li key={v.title} className="panel flex items-start gap-3 p-4">
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-lg ${v.color}`}
-            >
-              {v.icon}
-            </span>
+          <li key={v.title} className="border-l-4 border-brand-accent bg-white px-4 py-3">
             <div>
               <p className="font-bold text-brand-navy">{v.title}</p>
               <p className="text-xs text-neutral-600">{v.body}</p>

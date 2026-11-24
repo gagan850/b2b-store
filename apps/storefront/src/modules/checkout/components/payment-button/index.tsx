@@ -141,7 +141,7 @@ const RequestApprovalButton = ({
             : "This order requires approval by a sales manager."}
         </Text>
         <Button
-          className="w-full h-10 rounded-full shadow-none"
+          className="w-full h-10 rounded-md shadow-none"
           disabled={notReady || isPendingAdminApproval}
           onClick={createApproval}
           isLoading={submitting}

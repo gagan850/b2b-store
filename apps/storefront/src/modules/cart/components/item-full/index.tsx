@@ -2,13 +2,11 @@
 
 import { useCart } from "@/lib/context/cart-context"
 import AddNoteButton from "@/modules/cart/components/add-note-button"
-import DeleteButton from "@/modules/common/components/delete-button"
-import LineItemPrice from "@/modules/common/components/line-item-price"
+import { convertToLocale } from "@/lib/util/money"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import Spinner from "@/modules/common/icons/spinner"
-import Thumbnail from "@/modules/products/components/thumbnail"
 import { HttpTypes } from "@medusajs/types"
-import { clx, Container, Input } from "@medusajs/ui"
+import { clx } from "@medusajs/ui"
 import { startTransition, useEffect, useState } from "react"
 
 type ItemProps = {
@@ -86,108 +84,78 @@ const ItemFull = ({
 
   const maxQuantity = item.variant?.inventory_quantity ?? 100
 
+  const fmt = (n?: number | null) =>
+    convertToLocale({ amount: n ?? 0, currency_code: currencyCode })
+
   return (
-    <Container
-      className={clx("flex gap-4 w-full h-full items-center justify-between", {
-        "shadow-none": !showBorders,
-      })}
+    <div
+      className={clx(
+        "grid grid-cols-[64px_1fr] gap-x-4 gap-y-3 bg-white p-4 small:grid-cols-[64px_1fr_120px_100px_110px] small:items-center",
+        showBorders && "border border-brand-line"
+      )}
+      data-testid="cart-item"
     >
-      <div className="flex gap-x-4 items-start">
-        <LocalizedClientLink href={`/products/${item.product_handle}`}>
-          <Thumbnail
-            thumbnail={item.thumbnail}
-            size="square"
-            type="full"
-            className="bg-neutral-100 rounded-lg w-20 h-20"
-          />
+      <LocalizedClientLink
+        href={`/products/${item.product_handle}`}
+        className="row-span-2 h-16 w-16 border border-brand-line bg-white small:row-span-1"
+      >
+        {item.thumbnail && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.thumbnail} alt="" className="h-full w-full object-contain" />
+        )}
+      </LocalizedClientLink>
+      <div className="flex min-w-0 flex-col">
+        {item.variant?.sku && (
+          <span className="text-xs font-semibold text-brand-blue">Item # {item.variant.sku}</span>
+        )}
+        <LocalizedClientLink
+          href={`/products/${item.product_handle}`}
+          className="font-semibold text-brand-navy hover:underline"
+        >
+          {item.product?.title}
         </LocalizedClientLink>
-        <div className="flex flex-col gap-y-2 justify-between min-h-full self-stretch">
-          <div className="flex flex-col">
-            {item.variant?.sku && (
-              <span className="text-neutral-600 text-[0.6rem]">
-                Item # {item.variant.sku}
-              </span>
-            )}
-
-            <span className="txt-medium-plus text-neutral-950">
-              {item.product?.title}
-            </span>
-            <span className="text-neutral-600 text-xs">
-              {item.variant?.title}
-            </span>
-          </div>
-          <div className="flex small:flex-row flex-col gap-2">
-            <LineItemPrice
-              className="flex small:hidden self-start"
-              item={item}
-              currencyCode={currencyCode}
-            />
-            <div className="flex gap-x-2">
-              <div className="flex gap-x-3 shadow-[0_0_0_1px_rgba(0,0,0,0.1)] rounded-full w-fit p-px items-center">
-                <button
-                  className={clx(
-                    "w-4 h-4 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-full text-md",
-                    disabled ? "opacity-50 pointer-events-none" : "opacity-100"
-                  )}
-                  onClick={() => changeQuantity(item.quantity - 1)}
-                  disabled={item.quantity <= 1 || disabled}
-                >
-                  -
-                </button>
-                <span className="w-4 h-4 flex items-center justify-center text-neutral-950 text-xs">
-                  {updating ? (
-                    <Spinner size="12" />
-                  ) : (
-                    <Input
-                      className={clx(
-                        "w-10 h-4 flex items-center justify-center text-center text-neutral-950 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-transparent shadow-none",
-                        disabled
-                          ? "opacity-50 pointer-events-none"
-                          : "opacity-100"
-                      )}
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => {
-                        setQuantity(e.target.value)
-                      }}
-                      onBlur={(e) => {
-                        handleBlur(Number(e.target.value))
-                      }}
-                      onKeyDown={(e) => handleKeyDown(e)}
-                      disabled={disabled}
-                    />
-                  )}
-                </span>
-                <button
-                  className={clx(
-                    "w-4 h-4 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-full text-md",
-                    disabled ? "opacity-50 pointer-events-none" : "opacity-100"
-                  )}
-                  onClick={() => changeQuantity(item.quantity + 1)}
-                  disabled={item.quantity >= maxQuantity || disabled}
-                >
-                  +
-                </button>
-              </div>
-
-              <DeleteButton id={item.id} disabled={disabled} />
-            </div>
-            <AddNoteButton
-              item={item as HttpTypes.StoreCartLineItem}
-              disabled={disabled}
-            />
-          </div>
+        <span className="text-sm text-neutral-600">{item.variant?.title}</span>
+        <div className="mt-1 flex items-center gap-3">
+          <AddNoteButton item={item as HttpTypes.StoreCartLineItem} disabled={disabled} />
         </div>
       </div>
-      <div className="flex flex-col items-start justify-between min-h-full self-stretch">
-        <LineItemPrice
-          className="hidden small:flex"
-          item={item}
-          currencyCode={currencyCode}
-          style="default"
-        />
+      <div className="col-start-2 flex items-center gap-3 small:col-start-auto small:flex-col small:items-start small:gap-1">
+        <label className="flex items-center gap-2 text-sm text-neutral-600">
+          <span className="small:hidden">Qty</span>
+          {updating ? (
+            <Spinner size="16" />
+          ) : (
+            <input
+              className="h-9 w-20 rounded border border-brand-line px-2 text-center text-sm outline-none focus:border-brand-blue disabled:opacity-50"
+              type="number"
+              min={1}
+              inputMode="numeric"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              onBlur={(e) => handleBlur(Number(e.target.value))}
+              onKeyDown={(e) => handleKeyDown(e)}
+              disabled={disabled}
+              aria-label={`Quantity for ${item.variant?.sku ?? item.title}`}
+              data-testid="cart-item-quantity"
+            />
+          )}
+        </label>
+        <button
+          className="text-xs text-neutral-500 hover:text-red-600 hover:underline disabled:opacity-50"
+          onClick={() => handleDeleteItem(item.id)}
+          disabled={disabled}
+          data-testid="cart-item-remove"
+        >
+          Remove
+        </button>
       </div>
-    </Container>
+      <div className="col-start-2 text-sm text-neutral-600 small:col-start-auto small:text-right">
+        {fmt(item.unit_price)} <span className="text-xs">each</span>
+      </div>
+      <div className="col-start-2 text-base font-bold text-brand-navy small:col-start-auto small:text-right">
+        {fmt(item.subtotal ?? item.unit_price * item.quantity)}
+      </div>
+    </div>
   )
 }
 

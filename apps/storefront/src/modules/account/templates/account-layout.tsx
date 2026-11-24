@@ -22,11 +22,11 @@ const AccountLayout: React.FC<AccountLayoutProps> = async ({
 
   return (
     <div
-      className="flex-1 small:py-12 bg-neutral-100"
+      className="flex-1 py-6"
       data-testid="account-page"
     >
-      <div className="flex-1 content-container h-full max-w-7xl mx-auto flex flex-col">
-        <div className="grid grid-cols-1  small:grid-cols-[240px_1fr] py-12">
+      <div className="flex-1 content-container h-full flex flex-col">
+        <div className="grid grid-cols-1 gap-6 small:grid-cols-[240px_1fr]">
           <div>
             {customer && (
               <AccountNav
@@ -35,7 +35,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = async ({
               />
             )}
           </div>
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 min-w-0 bg-white p-4 small:p-8">{children}</div>
         </div>
       </div>
     </div>
