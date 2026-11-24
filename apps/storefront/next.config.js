@@ -7,6 +7,7 @@ checkEnvVariables()
  */
 const nextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   agentRules: false,
   async headers() {
     return [

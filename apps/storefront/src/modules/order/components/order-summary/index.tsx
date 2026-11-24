@@ -7,12 +7,8 @@ type OrderSummaryProps = {
 
 const OrderSummary = ({ order }: OrderSummaryProps) => {
   const getAmount = (amount?: number | null) => {
-    if (!amount) {
-      return
-    }
-
     return convertToLocale({
-      amount,
+      amount: amount ?? 0,
       currency_code: order.currency_code,
     })
   }
@@ -24,7 +20,7 @@ const OrderSummary = ({ order }: OrderSummaryProps) => {
         <div className="flex flex-col gap-y-1">
           <div className="flex items-center justify-between">
             <span>Subtotal</span>
-            <span>{getAmount(order.subtotal)}</span>
+            <span>{getAmount(order.item_subtotal ?? order.subtotal)}</span>
           </div>
 
           {order.discount_total > 0 && (

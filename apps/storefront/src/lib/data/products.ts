@@ -55,7 +55,7 @@ export const getProductByHandle = async (handle: string, regionId: string) => {
         handle,
         region_id: regionId,
         fields:
-          "*variants.calculated_price,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder,+metadata,+tags",
+          "*variants.calculated_price,*variants.prices,*variants.options,*options,*categories,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder,+metadata,+tags",
       },
       headers,
       next,

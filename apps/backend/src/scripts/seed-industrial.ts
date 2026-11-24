@@ -411,4 +411,16 @@ export default async function seedIndustrial({ container }: ExecArgs) {
     }
     logger.info(`Seeded ${top.name}`)
   }
+  // Ship to the US from the existing warehouse
+  const fulfillmentService = container.resolve(Modules.FULFILLMENT)
+  const zones = await fulfillmentService.listServiceZones({}, { relations: ["geo_zones"] })
+  if (zones.length && !zones.some((z) => z.geo_zones?.some((g) => g.country_code === "us"))) {
+    await fulfillmentService.createGeoZones({
+      service_zone_id: zones[0].id,
+      type: "country",
+      country_code: "us",
+    })
+  }
+  // Scripts run outside the server, so rebuild the product search index here.
+  await container.resolve(Modules.SEARCH).reindex({ index: "product" })
 }

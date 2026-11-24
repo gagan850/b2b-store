@@ -51,14 +51,13 @@ const CartToCsvButton = ({ cart }: CartToCsvButtonProps) => {
 
   return (
     <div className="flex flex-col gap-y-2 items-center">
-      <Button
-        className="w-full h-10 rounded-full shadow-borders-base"
-        variant="secondary"
+      <button
+        className="text-sm text-brand-blue hover:underline disabled:opacity-50"
         onClick={handleExportCart}
-        isLoading={isExportingCart}
+        disabled={isExportingCart}
       >
-        Export Cart (.csv)
-      </Button>
+        {isExportingCart ? "Exporting…" : "Download cart (CSV)"}
+      </button>
       {error && <Text className="text-red-500">{error}</Text>}
     </div>
   )

@@ -1,5 +1,4 @@
-import { getPaymentInfo, isManual } from "@/lib/constants"
-import PaymentTest from "@/modules/checkout/components/payment-test"
+import { getPaymentInfo } from "@/lib/constants"
 import Divider from "@/modules/common/components/divider"
 import Radio from "@/modules/common/components/radio"
 import { RadioGroup } from "@headlessui/react"
@@ -17,7 +16,6 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
   selectedPaymentOptionId,
   disabled = false,
 }) => {
-  const isDevelopment = process.env.NODE_ENV === "development"
   const paymentInfo = getPaymentInfo(paymentProviderId)
 
   return (
@@ -40,17 +38,11 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
             <Text className="text-base-regular">
               {paymentInfo?.title || paymentProviderId}
             </Text>
-            {isManual(paymentProviderId) && isDevelopment && (
-              <PaymentTest className="hidden small:block" />
-            )}
           </div>
           <span className="justify-self-end text-ui-fg-base">
             {paymentInfo?.icon}
           </span>
         </div>
-        {isManual(paymentProviderId) && isDevelopment && (
-          <PaymentTest className="small:hidden text-[10px]" />
-        )}
       </RadioGroup.Option>
       <Divider />
     </>

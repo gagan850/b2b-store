@@ -99,7 +99,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
             {/* <Button
               data-testid="card-details-link"
               variant="secondary"
-              className="rounded-full text-xs"
+              className="rounded-md text-xs"
             >
               Export to PDF
             </Button> */}
@@ -107,7 +107,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
               <Button
                 data-testid="card-details-link"
                 variant="secondary"
-                className="rounded-full text-xs"
+                className="rounded-md text-xs"
               >
                 Details
               </Button>

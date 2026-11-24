@@ -31,11 +31,11 @@ const SearchForm = ({
       name="q"
       defaultValue={defaultValue}
       placeholder="Search products"
-      className="flex-1 h-10 px-4 border rounded-full border-ui-border-base bg-ui-bg-field txt-compact-medium"
+      className="flex-1 h-10 px-4 border rounded-md border-ui-border-base bg-ui-bg-field txt-compact-medium"
     />
     <button
       type="submit"
-      className="h-10 px-4 rounded-full bg-neutral-900 text-white text-sm hover:bg-neutral-800"
+      className="h-10 px-4 rounded-md bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue-dark"
     >
       Search
     </button>

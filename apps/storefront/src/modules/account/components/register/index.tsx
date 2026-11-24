@@ -103,14 +103,12 @@ const Register = ({ setCurrentView, regions }: Props) => {
 
   return (
     <div
-      className="max-w-sm flex flex-col items-start gap-2 my-8"
+      className="max-w-sm w-full flex flex-col items-start gap-2 my-8"
       data-testid="register-page"
     >
-      <Text className="text-4xl text-neutral-950 text-left mb-4">
-        Create your
-        <br />
-        company account.
-      </Text>
+      <h1 className="font-condensed text-3xl font-bold text-brand-navy mb-4">
+        Create a company account
+      </h1>
       <form className="w-full flex flex-col" action={formAction}>
         <div className="flex flex-col w-full gap-y-4">
           <Input
@@ -212,7 +210,7 @@ const Register = ({ setCurrentView, regions }: Props) => {
             value={formData.company_country}
             onValueChange={handleSelectChange("company_country")}
           >
-            <Select.Trigger className="rounded-full h-10 px-4">
+            <Select.Trigger className="rounded-md h-10 px-4">
               <Select.Value
                 placeholder={placeholder({
                   placeholder: "Select a country",
@@ -236,7 +234,7 @@ const Register = ({ setCurrentView, regions }: Props) => {
             value={formData.currency_code}
             onValueChange={handleSelectChange("currency_code")}
           >
-            <Select.Trigger className="rounded-full h-10 px-4">
+            <Select.Trigger className="rounded-md h-10 px-4">
               <Select.Value
                 placeholder={placeholder({
                   placeholder: "Select a currency",
