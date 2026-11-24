@@ -84,7 +84,7 @@ const CategoryBreadcrumb = ({
 
   const breadcrumbs = generateBreadcrumbs(category)
 
-  return <ul className="flex items-center gap-x-3 text-sm">{breadcrumbs}</ul>
+  return <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">{breadcrumbs}</ul>
 }
 
 export default CategoryBreadcrumb

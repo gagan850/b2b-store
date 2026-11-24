@@ -1,13 +1,15 @@
-// Brand kit: swap these for your company's details.
+// Brand kit: LK Packaging. Swap these values to re-brand the store.
 export const BRAND = {
-  name: "Acme Industrial Supply",
-  shortName: "ACME",
-  tagline: "Shipping, packaging and facility supplies for business",
-  phone: "1-800-555-0100",
-  hours: "Mon–Fri 7am–8pm CT",
+  name: "LK Packaging",
+  shortName: "LK",
+  logo: "/lk-logo.png",
+  tagline: "Quality packaging for food, industrial and healthcare businesses",
+  slogan: "Smarter Films. Faster Delivery. Better Value.",
+  phone: "800.809.8393",
+  hours: "",
   promo: [
-    "Orders placed by 6pm ship same day",
-    "Net 30 terms for approved accounts",
+    "Ready-to-ship packaging for food, industrial and healthcare",
+    "Net terms for approved accounts",
     "Volume pricing on every item",
   ],
 }

@@ -63,7 +63,67 @@ export default function ProductFamilyTable({
           <p className="text-sm text-neutral-600">{product.description}</p>
         )}
       </div>
-      <div className="overflow-x-auto">
+      {/* Phone: one card per item */}
+      <ul className="divide-y divide-brand-line small:hidden">
+        {variants.map((v) => {
+          const tiers = tiersFor(v, currency)
+          const inStock =
+            !v.manage_inventory || v.allow_backorder || (v.inventory_quantity ?? 0) > 0
+          return (
+            <li key={v.id} className="flex flex-col gap-2 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-bold text-brand-blue">{v.sku}</p>
+                  <p className="text-sm text-brand-ink">
+                    {optionTitle}: {v.title}
+                  </p>
+                </div>
+                <span className={`chip ${inStock ? "chip-ok" : "chip-bad"}`}>
+                  {inStock ? "In stock" : "Out of stock"}
+                </span>
+              </div>
+              <div
+                className="grid gap-1 rounded bg-brand-canvas p-2 text-center text-xs"
+                style={{ gridTemplateColumns: `repeat(${Math.max(tierMins.length, 1)}, minmax(0, 1fr))` }}
+              >
+                {tierMins.map((m, i) => {
+                  const t = tiers.find((x) => x.min === m)
+                  return (
+                    <div key={m}>
+                      <p className="text-neutral-500">
+                        {i === tierMins.length - 1 ? `${m}+` : `${m}–${tierMins[i + 1] - 1}`}
+                      </p>
+                      <p className="text-sm font-bold text-brand-navy">
+                        {t ? fmt(t.amount) : "—"}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  value={qty[v.id] ?? ""}
+                  placeholder="Qty"
+                  onChange={(e) =>
+                    setQty((q) => ({ ...q, [v.id]: Number(e.target.value) }))
+                  }
+                  className="w-20 rounded border border-brand-line px-2 py-2 text-center outline-none focus:border-brand-blue"
+                  aria-label={`Quantity for ${v.sku}`}
+                />
+                <button onClick={() => add(v)} className="btn-accent flex-1">
+                  Add to cart
+                </button>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* Tablet and desktop: catalog table */}
+      <div className="hidden overflow-x-auto small:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-brand-navy text-left text-[11px] uppercase tracking-wide text-white">

@@ -58,7 +58,7 @@ export default function CategorySidebar({
   )
 
   return (
-    <aside className="flex w-full flex-col gap-4 small:w-[240px] small:shrink-0">
+    <aside className="hidden w-full flex-col gap-4 small:flex small:w-[240px] small:shrink-0">
       <div className="panel overflow-hidden">
         <LocalizedClientLink
           href={`/categories/${top.handle}`}

@@ -50,12 +50,12 @@ export default async function CategoryTemplate({
       <div className="flex flex-col gap-4 small:flex-row small:items-start">
         <CategorySidebar categories={categories} current={currentCategory} />
         <div className="flex w-full min-w-0 flex-col gap-4">
-          <header className="panel flex items-center gap-4 p-5">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-brand-accent-light text-3xl">
+          <header className="panel flex items-center gap-3 p-4 small:gap-4 small:p-5">
+            <span className="flex h-12 w-12 small:h-14 small:w-14 shrink-0 items-center justify-center rounded-md bg-brand-accent-light text-3xl">
               {(currentCategory.metadata?.icon as string) ?? "📦"}
             </span>
             <div>
-              <h1 className="text-2xl font-black text-brand-navy small:text-3xl">
+              <h1 className="font-condensed text-2xl font-bold text-brand-navy small:text-3xl">
                 {currentCategory.name}
               </h1>
               <p className="text-sm text-neutral-600">

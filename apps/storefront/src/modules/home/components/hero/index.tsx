@@ -14,8 +14,8 @@ const accountLinks = [
 
 const valueProps = [
   {
-    title: "Ships today",
-    body: "Order by 6pm for same-day shipping from the nearest warehouse.",
+    title: "Ready to ship",
+    body: "Stocked packaging shipped from the warehouse nearest you.",
     color: "bg-status-ok-bg text-status-ok",
     icon: "🚚",
   },
@@ -101,24 +101,24 @@ export default async function Hero({ countryCode }: { countryCode: string }) {
         </aside>
 
         {/* Banner */}
-        <section className="relative overflow-hidden rounded-md bg-gradient-to-br from-brand-navy via-brand-navy-2 to-brand-blue p-8 text-white small:p-12">
+        <section className="relative overflow-hidden rounded-md bg-gradient-to-br from-brand-navy via-brand-navy-2 to-brand-blue p-6 text-white xsmall:p-8 small:p-12">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-accent/20" />
           <div className="absolute -bottom-24 right-24 h-48 w-48 rounded-full bg-white/5" />
           <div className="relative flex h-full max-w-xl flex-col justify-center gap-4">
             <span className="chip w-fit bg-brand-accent text-white">
               Wholesale pricing for business accounts
             </span>
-            <h1 className="text-4xl font-black leading-tight small:text-5xl">
-              Everything your business needs, shipped today.
+            <h1 className="font-condensed text-3xl font-bold leading-tight xsmall:text-4xl small:text-5xl">
+              {BRAND.slogan}
             </h1>
             <p className="text-white/80">{BRAND.tagline}.</p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <LocalizedClientLink href="/store" className="btn-accent px-6 py-3">
+            <div className="flex flex-col gap-3 pt-2 xsmall:flex-row xsmall:flex-wrap">
+              <LocalizedClientLink href="/store" className="btn-accent px-6 py-3 text-center">
                 Shop all products
               </LocalizedClientLink>
               <LocalizedClientLink
                 href="/account/quotes"
-                className="inline-flex items-center rounded-md border border-white/40 px-6 py-3 text-sm font-semibold hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-md border border-white/40 px-6 py-3 text-sm font-semibold hover:bg-white/10"
               >
                 Request a quote
               </LocalizedClientLink>
@@ -148,7 +148,7 @@ export default async function Hero({ countryCode }: { countryCode: string }) {
               </button>
             </div>
           </form>
-          <div className="panel overflow-hidden">
+          <div className="panel hidden overflow-hidden small:block">
             <div className="panel-title">My Account</div>
             <ul className="divide-y divide-brand-line text-sm">
               {accountLinks.map((l) => (
