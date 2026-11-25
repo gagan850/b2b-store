@@ -4,138 +4,122 @@ import { HttpTypes } from "@medusajs/types"
 import { clx } from "@medusajs/ui"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
-const MegaMenu = ({
-  categories,
-}: {
-  categories: HttpTypes.StoreProductCategory[]
-}) => {
-  const [isHovered, setIsHovered] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<
-    HttpTypes.StoreProductCategory["id"] | null
-  >(null)
+type Cat = HttpTypes.StoreProductCategory
 
+/**
+ * Compact dropdown under the "Shop by Category" button: departments on the
+ * left, the hovered department's categories on the right. No full-width
+ * panel and no page blur.
+ */
+const MegaMenu = ({ categories }: { categories: Cat[] }) => {
+  const [open, setOpen] = useState(false)
+  const departments = categories.filter((c) => !c.parent_category_id)
+  const [active, setActive] = useState<string | null>(departments[0]?.id ?? null)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pathname = usePathname()
 
-  const mainCategories = categories.filter(
-    (category) => !category.parent_category_id
-  )
+  const childrenOf = (id: string) => categories.filter((c) => c.parent_category_id === id)
 
-  const getSubCategories = (categoryId: string) => {
-    return categories.filter(
-      (category) => category.parent_category_id === categoryId
-    )
+  const show = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+    setOpen(true)
+  }
+  const hide = () => {
+    closeTimer.current = setTimeout(() => setOpen(false), 150)
   }
 
-  let menuTimeout: NodeJS.Timeout | null = null
-
-  const handleMenuHover = () => {
-    if (menuTimeout) {
-      clearTimeout(menuTimeout)
-    }
-    setIsHovered(true)
-  }
-
-  const handleMenuLeave = () => {
-    menuTimeout = setTimeout(() => {
-      setIsHovered(false)
-    }, 300)
-
-    return () => {
-      if (menuTimeout) {
-        clearTimeout(menuTimeout)
-      }
-    }
-  }
-
-  let categoryTimeout: NodeJS.Timeout | null = null
-
-  const handleCategoryHover = (categoryId: string) => {
-    categoryTimeout = setTimeout(() => {
-      setSelectedCategory(categoryId)
-    }, 200)
-
-    return () => {
-      if (categoryTimeout) {
-        clearTimeout(categoryTimeout)
-      }
-    }
-  }
-
-  const handleCategoryLeave = () => {
-    if (categoryTimeout) {
-      clearTimeout(categoryTimeout)
-    }
-  }
+  useEffect(() => setOpen(false), [pathname])
 
   useEffect(() => {
-    setIsHovered(false)
-  }, [pathname])
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [open])
+
+  const activeDept = departments.find((d) => d.id === active)
 
   return (
-    <>
-      <div
-        onMouseEnter={handleMenuHover}
-        onMouseLeave={handleMenuLeave}
-        className="z-50"
-      >
-        <LocalizedClientLink
-          className="flex items-center gap-1 rounded px-3 py-2 hover:bg-white/10"
-          href="/store"
-        >
-          ☰ Shop by Category
-        </LocalizedClientLink>
-        {isHovered && (
-          <div className="fixed left-0 right-0 top-[144px] flex gap-32 py-8 px-20 bg-white border-b-4 border-brand-accent shadow-lg font-normal [&_a]:!text-brand-ink">
-            <div className="flex flex-col gap-2">
-              {mainCategories.map((category) => (
-                <LocalizedClientLink
-                  key={category.id}
-                  href={`/categories/${category.handle}`}
-                  className={clx(
-                    "hover:bg-brand-blue-light hover:cursor-pointer rounded px-3 py-2 w-56 font-semibold",
-                    selectedCategory === category.id && "bg-brand-blue-light"
-                  )}
-                  onMouseEnter={() => handleCategoryHover(category.id)}
-                  onMouseLeave={handleCategoryLeave}
-                >
-                  {category.name}
-                </LocalizedClientLink>
-              ))}
-            </div>
-            {selectedCategory && (
-              <div className="grid grid-cols-4 gap-16">
-                {getSubCategories(selectedCategory).map((category) => (
-                  <div key={category.id} className="flex flex-col gap-2">
-                    <LocalizedClientLink
-                      className="font-medium text-zinc-500 hover:underline"
-                      href={`/categories/${category.handle}`}
-                    >
-                      {category.name}
-                    </LocalizedClientLink>
-                    <div className="flex flex-col gap-2">
-                      {getSubCategories(category.id).map((subCategory) => (
-                        <LocalizedClientLink
-                          key={subCategory.id}
-                          className="hover:underline"
-                          href={`/categories/${subCategory.handle}`}
-                        >
-                          {subCategory.name}
-                        </LocalizedClientLink>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+    <div className="relative z-50" onMouseEnter={show} onMouseLeave={hide}>
+      <LocalizedClientLink
+        className={clx(
+          "flex items-center gap-1 rounded px-3 py-2 hover:bg-white/10",
+          open && "bg-white/10"
         )}
-      </div>
-      {isHovered && (
-        <div className="fixed inset-0 mt-[144px] blur-sm backdrop-blur-sm z-[-1]" />
+        href="/store"
+        onFocus={show}
+      >
+        ☰ Shop by Category
+      </LocalizedClientLink>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 flex w-[560px] overflow-hidden rounded-md border border-brand-line bg-white font-normal text-brand-ink shadow-xl [&_a]:!text-brand-ink"
+          data-testid="category-menu"
+        >
+          <ul className="w-48 shrink-0 border-r border-brand-line bg-brand-canvas py-2">
+            {departments.map((d) => (
+              <li key={d.id}>
+                <LocalizedClientLink
+                  href={`/categories/${d.handle}`}
+                  onMouseEnter={() => setActive(d.id)}
+                  onFocus={() => setActive(d.id)}
+                  className={clx(
+                    "flex items-center justify-between px-4 py-2 text-sm font-semibold",
+                    active === d.id ? "bg-white" : "hover:bg-white"
+                  )}
+                >
+                  {d.name}
+                  <span aria-hidden className="text-neutral-400">›</span>
+                </LocalizedClientLink>
+              </li>
+            ))}
+          </ul>
+
+          {activeDept && (
+            <div className="flex flex-1 flex-col gap-3 p-4">
+              <ul className="flex flex-col gap-1.5 text-sm">
+                {childrenOf(activeDept.id).map((c) => {
+                  const kids = childrenOf(c.id)
+                  return (
+                    <li key={c.id}>
+                      <LocalizedClientLink
+                        href={`/categories/${c.handle}`}
+                        className={clx("hover:underline", kids.length && "font-semibold")}
+                      >
+                        {c.name}
+                      </LocalizedClientLink>
+                      {kids.length > 0 && (
+                        <ul className="mt-1 flex flex-col gap-1 pl-3">
+                          {kids.map((k) => (
+                            <li key={k.id}>
+                              <LocalizedClientLink
+                                href={`/categories/${k.handle}`}
+                                className="hover:underline"
+                              >
+                                {k.name}
+                              </LocalizedClientLink>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+              <LocalizedClientLink
+                href={`/categories/${activeDept.handle}`}
+                className="mt-auto border-t border-brand-line pt-3 text-sm font-semibold hover:underline"
+              >
+                <span className="text-brand-blue">Shop all {activeDept.name} ›</span>
+              </LocalizedClientLink>
+            </div>
+          )}
+        </div>
       )}
-    </>
+    </div>
   )
 }
 
