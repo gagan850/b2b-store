@@ -6,7 +6,7 @@ import LocalizedClientLink from "@/modules/common/components/localized-client-li
 import { MegaMenuWrapper } from "@/modules/layout/components/mega-menu"
 import MobileMenu from "@/modules/layout/components/mobile-menu"
 import NavSessionActions from "@/modules/layout/components/nav-session-actions"
-import Search from "@/modules/layout/components/search"
+import InlineSearch from "@/modules/layout/components/search/inline"
 import SkeletonMegaMenu from "@/modules/skeletons/components/skeleton-mega-menu"
 import { Suspense } from "react"
 
@@ -63,7 +63,7 @@ export async function NavigationHeader({
         </LocalizedClientLink>
 
         <div className="order-last w-full small:order-none small:flex-1">
-          <Search currencyCode={currencyCode} variant="bar" />
+          <InlineSearch currencyCode={currencyCode} />
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 text-sm text-brand-navy">

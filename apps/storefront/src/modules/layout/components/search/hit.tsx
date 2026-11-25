@@ -49,9 +49,10 @@ type SearchHitProps = {
   hit: ProductHit
   currencyCode: string
   onNavigate?: () => void
+  compact?: boolean
 }
 
-const SearchHit = ({ hit, currencyCode, onNavigate }: SearchHitProps) => {
+const SearchHit = ({ hit, currencyCode, onNavigate, compact }: SearchHitProps) => {
   // Without a handle there's no product page to link to.
   if (!hit.handle) {
     return null
@@ -68,10 +69,13 @@ const SearchHit = ({ hit, currencyCode, onNavigate }: SearchHitProps) => {
       <LocalizedClientLink
         href={`/products/${hit.handle}`}
         onClick={onNavigate}
-        className="flex items-center gap-x-4 p-3 rounded-lg hover:bg-neutral-100"
+        className={clx(
+          "flex items-center rounded-lg hover:bg-neutral-100",
+          compact ? "gap-x-3 px-3 py-1.5" : "gap-x-4 p-3"
+        )}
         data-testid="search-hit-link"
       >
-        <div className="w-16 shrink-0">
+        <div className={compact ? "w-10 shrink-0" : "w-16 shrink-0"}>
           <Thumbnail
             thumbnail={hit.thumbnail as string | null}
             size="square"
