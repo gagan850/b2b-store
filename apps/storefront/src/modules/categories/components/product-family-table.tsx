@@ -1,14 +1,20 @@
 "use client"
 
 import { addToCartEventBus } from "@/lib/data/cart-event-bus"
+import { ContractPrices, retrieveContractPrices } from "@/lib/data/contract-prices"
+import { useSession } from "@/lib/context/session-context"
 import { convertToLocale } from "@/lib/util/money"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import { HttpTypes } from "@medusajs/types"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type Tier = { min: number; amount: number }
 
-const tiersFor = (variant: HttpTypes.StoreProductVariant, currency: string) => {
+const tiersFor = (
+  variant: HttpTypes.StoreProductVariant,
+  currency: string,
+  contract?: { amount: number; contract: boolean }
+) => {
   const prices = ((variant as any).prices ?? []) as {
     amount: number
     currency_code: string
@@ -19,10 +25,20 @@ const tiersFor = (variant: HttpTypes.StoreProductVariant, currency: string) => {
   prices
     .filter((p) => p.currency_code === currency && !p.price_list_id)
     .forEach((p) => byMin.set(p.min_quantity ?? 1, p.amount))
-  return [...byMin.entries()]
+  const tiers = [...byMin.entries()]
     .map(([min, amount]) => ({ min, amount }))
     .sort((a, b) => a.min - b.min) as Tier[]
+  // A contract (price list) price replaces the public price breaks for this buyer
+  if (contract) {
+    return (tiers.length ? tiers : [{ min: 1, amount: 0 }]).map((t) => ({
+      min: t.min,
+      amount: contract.amount,
+    }))
+  }
+  return tiers
 }
+
+
 
 /** One product family laid out as a catalog table: item #, option, price breaks, qty, add. */
 export default function ProductFamilyTable({
@@ -36,8 +52,26 @@ export default function ProductFamilyTable({
 }) {
   const currency = region.currency_code
   const variants = product.variants ?? []
+  // This buyer's contract prices (the page itself is shared and static)
+  const { customer } = useSession()
+  const [mine, setMine] = useState<ContractPrices>({})
+  useEffect(() => {
+    if (!customer) {
+      setMine({})
+      return
+    }
+    let live = true
+    retrieveContractPrices(product.id, region.id)
+      .then((p) => live && setMine(p))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [customer?.id, product.id, region.id])
+  const contractOf = (v: HttpTypes.StoreProductVariant) =>
+    mine[v.id]?.contract ? mine[v.id] : undefined
   const tierMins = [
-    ...new Set(variants.flatMap((v) => tiersFor(v, currency).map((t) => t.min))),
+    ...new Set(variants.flatMap((v) => tiersFor(v, currency, contractOf(v)).map((t) => t.min))),
   ].sort((a, b) => a - b)
   const optionTitle = product.options?.[0]?.title ?? "Option"
   const [qty, setQty] = useState<Record<string, number>>({})
@@ -86,9 +120,14 @@ export default function ProductFamilyTable({
       )}
       <div className="overflow-hidden border border-brand-line">
       {/* Phone: one card per item */}
+      {variants.some((v) => contractOf(v)) && (
+        <p className="text-sm font-semibold text-brand-blue" data-testid="contract-price-note">
+          Your contract pricing is shown.
+        </p>
+      )}
       <ul className="divide-y divide-brand-line small:hidden">
         {variants.map((v) => {
-          const tiers = tiersFor(v, currency)
+          const tiers = tiersFor(v, currency, contractOf(v))
           const inStock =
             !v.manage_inventory || v.allow_backorder || (v.inventory_quantity ?? 0) > 0
           return (
@@ -163,7 +202,7 @@ export default function ProductFamilyTable({
           </thead>
           <tbody>
             {variants.map((v, idx) => {
-              const tiers = tiersFor(v, currency)
+              const tiers = tiersFor(v, currency, contractOf(v))
               return (
                 <tr
                   key={v.id}

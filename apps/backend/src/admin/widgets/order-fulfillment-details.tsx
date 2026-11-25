@@ -111,6 +111,20 @@ const OrderFulfillmentDetails = ({ data }: DetailWidgetProps<AdminOrder>) => {
 
   if (meta.notes) rows.push({ label: "Instructions", value: meta.notes })
 
+  if (meta.placed_by_staff) {
+    rows.push({
+      label: "Placed by",
+      value: (
+        <>
+          <Badge size="2xsmall" color="blue" className="mr-2">
+            On behalf
+          </Badge>
+          {meta.placed_by_staff}
+        </>
+      ),
+    })
+  }
+
   rows.push({
     label: "Payment",
     value: card

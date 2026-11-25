@@ -6,6 +6,7 @@ import {
   SessionCartMismatchBanner,
   SessionFreeShippingNudge,
 } from "@/modules/layout/components/session-banners"
+import ImpersonationBanner from "@/modules/layout/components/impersonation-banner"
 import Footer from "@/modules/layout/templates/footer"
 import { NavigationHeader } from "@/modules/layout/templates/nav"
 import { Metadata } from "next"
@@ -27,6 +28,7 @@ export default async function PageLayout(props: {
   return (
     <SessionProvider session={session}>
       <div className="flex min-h-screen flex-col">
+        <ImpersonationBanner />
         <NavigationHeader currencyCode={region?.currency_code} />
         <SessionCartMismatchBanner />
 

@@ -16,6 +16,7 @@ import {
   removeCartId,
   setCartId,
 } from "./cookies"
+import { getImpersonation } from "./impersonation"
 import { retrieveCustomer } from "./customer"
 import { getRegion } from "./regions"
 
@@ -488,6 +489,8 @@ export async function setContactDetails(
     const cart = await retrieveCart()
     const str = (k: string) => String(formData.get(k) ?? "").trim()
     const blindShip = formData.get("blind_ship") === "1"
+    // Staff shopping as a buyer: mark the order as placed on their behalf
+    const who = await getImpersonation()
     const data = {
       email: str("email"),
       metadata: {
@@ -496,6 +499,7 @@ export async function setContactDetails(
         notes: str("notes").slice(0, 200),
         blind_ship: blindShip,
         blind_ship_name: blindShip ? str("blind_ship_name").slice(0, 60) : "",
+        ...(who ? { placed_by_staff: who.staff, placed_by_staff_id: who.staff_id } : {}),
       },
     }
     await updateCart(data)
