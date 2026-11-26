@@ -130,8 +130,8 @@ const OrderFulfillmentDetails = ({ data }: DetailWidgetProps<AdminOrder>) => {
     value: card
       ? `${card.brand} ending in ${card.last4}${card.exp ? `, exp ${card.exp}` : ""}`
       : payment?.provider_id === "pp_account_account"
-      ? "Bill to account (invoice)"
-      : payment?.provider_id ?? "Not paid",
+      ? "Billed to account"
+      : payment?.provider_id ?? "Payment Pending",
   })
 
   return (

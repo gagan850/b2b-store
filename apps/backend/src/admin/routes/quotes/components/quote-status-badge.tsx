@@ -1,21 +1,5 @@
 import { StatusBadge } from "@medusajs/ui";
-
-// Plain-language labels. The five statuses themselves are fixed in the quote module.
-const StatusTitles: Record<string, string> = {
-  pending_merchant: "Needs our reply",
-  pending_customer: "Sent, waiting for customer",
-  accepted: "Accepted",
-  customer_rejected: "Declined by customer",
-  merchant_rejected: "Declined by us",
-};
-
-const StatusColors: Record<string, "green" | "orange" | "red" | "blue" | "grey"> = {
-  pending_merchant: "orange",
-  pending_customer: "blue",
-  accepted: "green",
-  customer_rejected: "grey",
-  merchant_rejected: "red",
-};
+import { quoteStatus } from "../../../lib/status-labels";
 
 export default function QuoteStatusBadge({
   status,
@@ -24,13 +8,6 @@ export default function QuoteStatusBadge({
   status: string;
   revision?: boolean;
 }) {
-  // The customer asked for changes instead of declining outright
-  if (revision && status === "customer_rejected") {
-    return <StatusBadge color="orange">Customer wants changes</StatusBadge>;
-  }
-  return (
-    <StatusBadge color={StatusColors[status] ?? "grey"}>
-      {StatusTitles[status] ?? status}
-    </StatusBadge>
-  );
+  const s = quoteStatus(status, revision);
+  return <StatusBadge color={s.color}>{s.label}</StatusBadge>;
 }

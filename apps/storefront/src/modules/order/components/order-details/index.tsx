@@ -1,4 +1,6 @@
 import { HttpTypes } from "@medusajs/types"
+import { orderStatus, paymentStatus } from "@/lib/util/status-labels"
+import StatusChip from "@/modules/order/components/status-chip"
 import { Heading, Text } from "@medusajs/ui"
 
 type OrderDetailsProps = {
@@ -18,6 +20,16 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
         <div className="flex justify-between">
           <Text>Order Number</Text>
           <Text>#{order.display_id}</Text>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Text>Order Status</Text>
+          <StatusChip {...orderStatus(order as any)} />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Text>Payment</Text>
+          <StatusChip {...paymentStatus(order as any)} />
         </div>
 
         <div className="flex justify-between mb-2">

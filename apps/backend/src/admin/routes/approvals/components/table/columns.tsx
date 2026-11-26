@@ -2,7 +2,7 @@ import { StatusBadge, createDataTableColumnHelper } from "@medusajs/ui";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { DateCell } from "../../../../../admin/components/common/table/table-cells/date-cell";
-import { ApprovalStatusType } from "../../../../../types/approval";
+import { approvalStatus } from "../../../../lib/status-labels";
 import { TextCell } from "../../../../components/common/table/table-cells/text-cell";
 import { ApprovalActions } from "../approval-actions";
 import ItemsPopover from "../approvals-items-popover";
@@ -29,20 +29,8 @@ export const useApprovalsTableColumns = () => {
       columnHelper.accessor("approval_status.status", {
         header: t("fields.status"),
         cell: ({ getValue }) => {
-          const status = getValue();
-          return (
-            <StatusBadge
-              color={
-                status === ApprovalStatusType.APPROVED
-                  ? "green"
-                  : status === ApprovalStatusType.REJECTED
-                  ? "red"
-                  : "purple"
-              }
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
-            </StatusBadge>
-          );
+          const { label, color } = approvalStatus(getValue());
+          return <StatusBadge color={color}>{label}</StatusBadge>;
         },
       }),
       columnHelper.accessor("items", {

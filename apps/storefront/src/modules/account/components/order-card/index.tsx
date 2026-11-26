@@ -6,6 +6,8 @@ import { HttpTypes } from "@medusajs/types"
 import { Button, clx, Container } from "@medusajs/ui"
 import Image from "next/image"
 import { useMemo } from "react"
+import { orderStatus } from "@/lib/util/status-labels"
+import StatusChip from "@/modules/order/components/status-chip"
 import ReorderButton from "@/modules/order/components/reorder-button"
 
 type OrderCardProps = {
@@ -80,6 +82,8 @@ const OrderCard = ({ order }: OrderCardProps) => {
             <DocumentIcon className="inline-block mr-1" />
             <span data-testid="order-display-id">#{order.display_id}</span>
           </div>
+
+          <StatusChip {...orderStatus(order as any)} />
         </div>
 
         <div className="flex gap-x-4 small:divide-x divide-gray-200 small:justify-normal justify-between w-full small:w-auto">
