@@ -16,6 +16,7 @@ import {
   removeCartId,
   setCartId,
 } from "./cookies"
+import { getFeatures } from "./features"
 import { getImpersonation } from "./impersonation"
 import { retrieveCustomer } from "./customer"
 import { getRegion } from "./regions"
@@ -46,7 +47,19 @@ export async function retrieveCart(id?: string) {
       headers,
       next,
     })
-    .then(({ cart }) => {
+    .then(async ({ cart }) => {
+      // With approvals switched off, hide every approval rule from the UI
+      if (!(await getFeatures()).approvals) {
+        const c = cart as any
+        if (c.company?.approval_settings) {
+          c.company.approval_settings = {
+            ...c.company.approval_settings,
+            requires_admin_approval: false,
+            requires_sales_manager_approval: false,
+          }
+        }
+        c.approvals = []
+      }
       return cart as B2BCart
     })
     .catch(() => {

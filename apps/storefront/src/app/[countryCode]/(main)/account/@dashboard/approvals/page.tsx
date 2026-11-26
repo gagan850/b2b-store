@@ -1,8 +1,10 @@
 import ApprovedApprovalRequestsAdminList from "@/modules/account/components/approval-requests-admin-list/approved-list"
 import PendingApprovalRequestsAdminList from "@/modules/account/components/approval-requests-admin-list/pending-list"
 import RejectedApprovalRequestsAdminList from "@/modules/account/components/approval-requests-admin-list/rejected-list"
+import { getFeatures } from "@/lib/data/features"
 import { Heading } from "@medusajs/ui"
 import { Metadata } from "next"
+import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
@@ -15,6 +17,7 @@ export default async function Approvals({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  if (!(await getFeatures()).approvals) notFound()
   const urlSearchParams = await searchParams
 
   return (

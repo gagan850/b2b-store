@@ -15,7 +15,6 @@ const account = [
   { label: "Sign in / Register", href: "/account" },
   { label: "Order history", href: "/account/orders" },
   { label: "Quotes", href: "/account/quotes" },
-  { label: "Approvals", href: "/account/approvals" },
   { label: "Company & buyers", href: "/account/company" },
 ]
 

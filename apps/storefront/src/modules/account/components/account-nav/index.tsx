@@ -15,9 +15,11 @@ import { useParams, usePathname } from "next/navigation"
 const AccountNav = ({
   customer,
   numPendingApprovals,
+  approvalsEnabled,
 }: {
   customer: B2BCustomer | null
   numPendingApprovals: number
+  approvalsEnabled?: boolean
 }) => {
   const route = usePathname()
 
@@ -106,7 +108,7 @@ const AccountNav = ({
                     <ChevronDown className="transform -rotate-90" />
                   </LocalizedClientLink>
                 </li>
-                {customer?.employee?.is_admin && (
+                {approvalsEnabled && customer?.employee?.is_admin && (
                   <li>
                     <LocalizedClientLink
                       href="/account/approvals"
@@ -202,7 +204,7 @@ const AccountNav = ({
                 Orders
               </AccountNavLink>
             </li>
-            {customer?.employee?.is_admin && (
+            {approvalsEnabled && customer?.employee?.is_admin && (
               <li>
                 <AccountNavLink
                   href="/account/approvals"

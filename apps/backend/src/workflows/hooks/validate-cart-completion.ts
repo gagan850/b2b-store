@@ -3,6 +3,7 @@ import { StepResponse } from "@medusajs/framework/workflows-sdk";
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils";
 import { getCartApprovalStatus } from "../../utils/get-cart-approval-status";
 import { checkSpendingLimit } from "../../utils/check-spending-limit";
+import { getFeatures } from "../../lib/features";
 import { HttpTypes } from "@medusajs/framework/types";
 
 export const ACCOUNT_PROVIDER_ID = "pp_account_account";
@@ -29,7 +30,8 @@ completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
   // Check if cart is pending approval
   const { isPendingApproval } = getCartApprovalStatus(queryCart);
 
-  if (isPendingApproval) {
+  const approvalsOn = (await getFeatures(container)).approvals;
+  if (approvalsOn && isPendingApproval) {
     throw new Error("Cart is pending approval");
   }
 

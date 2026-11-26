@@ -1,6 +1,7 @@
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { StepResponse } from "@medusajs/framework/workflows-sdk";
 import { updateCartWorkflow } from "@medusajs/medusa/core-flows";
+import { getFeatures } from "../../lib/features";
 import { getCartApprovalStatus } from "../../utils/get-cart-approval-status";
 
 updateCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
@@ -18,7 +19,7 @@ updateCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
 
   const { isPendingApproval } = getCartApprovalStatus(queryCart);
 
-  if (isPendingApproval) {
+  if ((await getFeatures(container)).approvals && isPendingApproval) {
     throw new Error("Cart is pending approval");
   }
 
