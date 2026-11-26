@@ -33,6 +33,7 @@ export const POST = async (
       ...(draft.metadata ?? {}),
       quote_valid_until: until.toISOString(),
       quote_note: note ?? "",
+      quote_revision_note: "",
     },
   });
 

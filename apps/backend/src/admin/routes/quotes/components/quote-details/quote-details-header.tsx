@@ -17,7 +17,10 @@ export const QuoteDetailsHeader = ({
 
       <div className="flex items-center gap-x-4">
         <div className="flex items-center gap-x-1.5">
-          <QuoteStatusBadge status={quote.status} />
+          <QuoteStatusBadge
+            status={quote.status}
+            revision={!!(quote as any).draft_order?.metadata?.quote_revision_note}
+          />
         </div>
 
         <DropdownMenu>

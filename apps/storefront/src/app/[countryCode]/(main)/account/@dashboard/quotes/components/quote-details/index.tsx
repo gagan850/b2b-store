@@ -1,6 +1,6 @@
 "use client"
 
-import { acceptQuote, rejectQuote } from "@/lib/data/quotes"
+import { acceptQuote, rejectQuote, reviseQuote } from "@/lib/data/quotes"
 import { formatAmount } from "@/modules/common/components/amount-cell"
 import Button from "@/modules/common/components/button"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
@@ -12,7 +12,6 @@ import { AdminOrderLineItem, AdminOrderPreview } from "@medusajs/types"
 import { Container, Heading, Text, toast } from "@medusajs/ui"
 import { useRouter } from "next/navigation"
 import React, { useMemo, useState } from "react"
-import QuoteMessages from "../quote-messages"
 import QuoteStatusBadge from "../quote-status-badge"
 import { QuoteTableItem } from "../quote-table"
 
@@ -45,10 +44,18 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
   const router = useRouter()
   const [isAccepting, setIsAccepting] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
+  const [reviseOpen, setReviseOpen] = useState(false)
+  const [reviseNote, setReviseNote] = useState("")
+  const [isRevising, setIsRevising] = useState(false)
   const meta = ((order as any).metadata ?? {}) as Record<string, any>
   const validUntil: Date | null = meta.quote_valid_until
     ? new Date(meta.quote_valid_until)
     : null
+  const revisionNote: string = meta.quote_revision_note ?? ""
+  const requestNote: string =
+    ((quote.messages ?? []) as any[])
+      .filter((m) => m.customer_id)
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0]?.text ?? ""
   const discountNames = [
     ...new Set(
       (order.items ?? []).flatMap((i: any) =>
@@ -144,51 +151,119 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
             </div>
           </Container>
 
+          {requestNote && (
+            <Container>
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Your request
+              </p>
+              <p className="mt-1 whitespace-pre-line text-sm text-brand-ink">{requestNote}</p>
+            </Container>
+          )}
+
+          {quote.status === "customer_rejected" && revisionNote && (
+            <Container className="border-amber-300 bg-amber-50">
+              <p className="text-sm font-semibold text-amber-900">
+                You asked for changes
+              </p>
+              <p className="mt-1 whitespace-pre-line text-sm text-amber-900">{revisionNote}</p>
+              <p className="mt-2 text-xs text-amber-800">
+                We will update the quote and send it back to you here.
+              </p>
+            </Container>
+          )}
+
           {quote.status === "pending_customer" && expired && (
             <Container className="text-sm text-red-700">
-              This quote has expired. Send us a message below and we will
+              This quote has expired. Choose &quot;Request changes&quot; and we will
               issue a new one.
             </Container>
           )}
+
           {quote.status === "pending_customer" && (
-            <div className="flex gap-x-3 justify-end my-4">
-              <PromptModal
-                title="Reject Quote?"
-                description="Are you sure you want to reject quote? This action is irreversible."
-                handleAction={() => {
-                  setIsRejecting(true)
+            <div className="my-4 flex flex-col gap-3">
+              {reviseOpen && (
+                <div className="rounded-md border border-brand-line bg-white p-4">
+                  <label className="text-sm font-semibold text-brand-navy" htmlFor="revise-note">
+                    What would you like changed?
+                  </label>
+                  <textarea
+                    id="revise-note"
+                    value={reviseNote}
+                    onChange={(e) => setReviseNote(e.target.value)}
+                    rows={3}
+                    maxLength={500}
+                    placeholder="e.g. Can you do $0.80 each at 3,000 units?"
+                    className="mt-2 w-full rounded border border-brand-line px-3 py-2 text-sm outline-none focus:border-brand-blue"
+                  />
+                  <div className="mt-3 flex justify-end gap-2">
+                    <Button size="small" variant="secondary" onClick={() => setReviseOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      size="small"
+                      isLoading={isRevising}
+                      disabled={reviseNote.trim().length < 3}
+                      onClick={() => {
+                        setIsRevising(true)
+                        reviseQuote(quote.id, reviseNote.trim())
+                          .then(() => {
+                            setReviseOpen(false)
+                            router.refresh()
+                          })
+                          .catch((e) => toast.error(e.message))
+                          .finally(() => setIsRevising(false))
+                      }}
+                    >
+                      Send request
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-wrap justify-end gap-x-3 gap-y-2">
+                <PromptModal
+                  title="Reject this quote?"
+                  description="We will close this quote. You can always request a new one."
+                  handleAction={() => {
+                    setIsRejecting(true)
 
-                  rejectQuote(quote.id)
-                    .catch((e) => toast.error(e.message))
-                    .finally(() => setIsRejecting(false))
-                }}
-                isLoading={isRejecting}
-              >
-                <Button size="small" variant="secondary">
-                  Reject Quote
+                    rejectQuote(quote.id)
+                      .catch((e) => toast.error(e.message))
+                      .finally(() => setIsRejecting(false))
+                  }}
+                  isLoading={isRejecting}
+                >
+                  <Button size="small" variant="secondary">
+                    Reject
+                  </Button>
+                </PromptModal>
+
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onClick={() => setReviseOpen((v) => !v)}
+                >
+                  Request changes
                 </Button>
-              </PromptModal>
 
-              <PromptModal
-                title="Accept Quote?"
-                description="Are you sure you want to accept quote? This action is irreversible."
-                handleAction={() => {
-                  setIsAccepting(true)
+                <PromptModal
+                  title="Accept this quote?"
+                  description="Your order is created at the prices shown."
+                  handleAction={() => {
+                    setIsAccepting(true)
 
-                  acceptQuote(quote.id)
-                    .catch((e) => toast.error(e.message))
-                    .finally(() => setIsAccepting(false))
-                }}
-                isLoading={isAccepting}
-              >
-                <Button size="small" variant="primary" disabled={expired}>
-                  Accept Quote
-                </Button>
-              </PromptModal>
+                    acceptQuote(quote.id)
+                      .catch((e) => toast.error(e.message))
+                      .finally(() => setIsAccepting(false))
+                  }}
+                  isLoading={isAccepting}
+                >
+                  <Button size="small" variant="primary" disabled={expired}>
+                    Accept quote
+                  </Button>
+                </PromptModal>
+              </div>
             </div>
           )}
-
-          <QuoteMessages quote={quote} preview={preview} />
         </div>
 
         <div className="col-span-2 flex flex-col gap-y-2">
@@ -198,7 +273,7 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
               <span className="whitespace-nowrap">Q-{String(quote.draft_order.display_id).padStart(6, "0")}</span>
             </div>
 
-            <QuoteStatusBadge status={quote.status} />
+            <QuoteStatusBadge status={quote.status} revision={!!revisionNote} />
           </Container>
 
           {(validUntil || meta.quote_note) && (
@@ -259,17 +334,6 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
                 <Text>{quote.customer?.phone || "-"}</Text>
               </div>
 
-              <div className="flex justify-between">
-                <Text>Spend Limit</Text>
-                <Text>
-                  {(quote.customer?.employee?.spending_limit &&
-                    formatAmount(
-                      quote.customer?.employee?.spending_limit || 0,
-                      order.currency_code.toUpperCase()
-                    )) ||
-                    "-"}
-                </Text>
-              </div>
             </div>
           </Container>
 

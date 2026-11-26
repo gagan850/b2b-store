@@ -148,6 +148,27 @@ export const rejectQuote = async (id: string) => {
     })
 }
 
+export const reviseQuote = async (id: string, note: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch<{ ok: boolean }>(`/store/quotes/${id}/revise`, {
+      method: "POST",
+      body: { note },
+      headers,
+    })
+    .finally(async () => {
+      const tags = await Promise.all([
+        getCacheTag("quotes"),
+        getCacheTag(["quote", id].join("-")),
+        getCacheTag(["quotePreview", id].join("-")),
+      ])
+      tags.forEach((tag) => revalidateTag(tag, { expire: 0 }))
+    })
+}
+
 export const createQuoteMessage = async (
   id: string,
   body: StoreCreateQuoteMessage

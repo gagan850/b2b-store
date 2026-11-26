@@ -17,10 +17,17 @@ const StatusChip: Record<string, string> = {
   pending_customer: "chip-info",
 }
 
-export default function QuoteStatusBadge({ status }: { status: string }) {
+export default function QuoteStatusBadge({
+  status,
+  revision = false,
+}: {
+  status: string
+  revision?: boolean
+}) {
+  const changes = revision && status === "customer_rejected"
   return (
-    <span className={`chip ${StatusChip[status] ?? "chip-neutral"}`}>
-      {StatusTitles[status] ?? status}
+    <span className={`chip ${changes ? "chip-warn" : StatusChip[status] ?? "chip-neutral"}`}>
+      {changes ? "Changes requested" : StatusTitles[status] ?? status}
     </span>
   )
 }

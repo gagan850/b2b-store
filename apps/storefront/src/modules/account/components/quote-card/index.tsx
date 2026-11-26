@@ -75,7 +75,10 @@ const QuoteCard = ({ quote }: QuoteCardProps) => {
         </div>
 
         <div className="flex items-center">
-          <QuoteStatusBadge status={quote.status} />
+          <QuoteStatusBadge
+            status={quote.status}
+            revision={!!(quote.draft_order as any)?.metadata?.quote_revision_note}
+          />
         </div>
       </div>
 

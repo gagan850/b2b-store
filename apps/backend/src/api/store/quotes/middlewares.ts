@@ -63,6 +63,11 @@ export const storeQuotesMiddlewares: MiddlewareRoute[] = [
   },
   {
     method: ["POST"],
+    matcher: "/store/quotes/:id/revise",
+    middlewares: [],
+  },
+  {
+    method: ["POST"],
     matcher: "/store/quotes/:id/reject",
     middlewares: [
       validateAndTransformBody(RejectQuote),

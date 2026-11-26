@@ -26,7 +26,6 @@ import {
   QuoteTotal,
 } from "../components/quote-details";
 import { SendQuoteDialog } from "../components/send-quote-dialog";
-import { QuoteMessages } from "../components/quote-messages";
 
 const QuoteDetails = () => {
   const { quoteId } = useParams();
@@ -71,6 +70,16 @@ const QuoteDetails = () => {
       setShowRejectQuote(true);
     }
   }, [quote]);
+
+  const revisionNote: string =
+    (quote?.draft_order as any)?.metadata?.quote_revision_note ?? "";
+  const requestNote: string =
+    ([...((quote as any)?.messages ?? [])] as any[])
+      .filter((m) => m.customer_id)
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )[0]?.text ?? "";
 
   const handleSendQuote = async (v: { valid_until: string; note: string }) => {
     await sendQuote(v, {
@@ -135,6 +144,32 @@ const QuoteDetails = () => {
             </Container>
           )}
 
+          {quote.status === "customer_rejected" && revisionNote && (
+            <Container className="border-ui-tag-orange-border bg-ui-tag-orange-bg px-6 py-4">
+              <Text size="small" weight="plus">
+                The customer asked for changes
+              </Text>
+              <Text size="small" className="mt-1 whitespace-pre-line">
+                {revisionNote}
+              </Text>
+              <Text size="xsmall" className="text-ui-fg-subtle mt-2">
+                Edit prices or quantities from the menu (…) on the summary, then
+                send the revised quote.
+              </Text>
+            </Container>
+          )}
+
+          {requestNote && (
+            <Container className="px-6 py-4">
+              <Text size="small" weight="plus">
+                Customer's request note
+              </Text>
+              <Text size="small" className="text-ui-fg-subtle mt-1 whitespace-pre-line">
+                {requestNote}
+              </Text>
+            </Container>
+          )}
+
           <Container className="divide-y divide-dashed p-0">
             <QuoteDetailsHeader quote={quote} />
             <QuoteItems order={quote.draft_order} preview={preview!} />
@@ -161,7 +196,7 @@ const QuoteDetails = () => {
                     onClick={() => setSendOpen(true)}
                     disabled={isSendingQuote}
                   >
-                    Send Quote
+                    {quote.status === "customer_rejected" ? "Send revised quote" : "Send Quote"}
                   </Button>
                 )}
               </div>
@@ -174,8 +209,6 @@ const QuoteDetails = () => {
             busy={isSendingQuote}
             onSend={handleSendQuote}
           />
-
-          <QuoteMessages quote={quote} preview={preview!} />
 
           <JsonViewSection data={quote} />
         </div>
