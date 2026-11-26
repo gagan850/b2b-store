@@ -1,6 +1,6 @@
 "use client"
 
-import { acceptQuote, rejectQuote, reviseQuote } from "@/lib/data/quotes"
+import { acceptQuote, rejectQuote, reviseQuote, startQuoteCheckout } from "@/lib/data/quotes"
 import { formatAmount } from "@/modules/common/components/amount-cell"
 import Button from "@/modules/common/components/button"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
@@ -87,22 +87,40 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
         <div className="small:col-span-4 flex flex-col gap-y-2">
           {quote.status === "accepted" && (
             <Container className="p-0">
-              <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
                 <Text className="txt-compact-small">
                   <CheckCircleSolid className="inline-block mr-2 text-green-500 text-lg" />
-                  Quote accepted by customer. Order is ready for processing.
+                  {meta.quote_order_id
+                    ? `Quote accepted. Order #${meta.quote_order_display_id} has been placed.`
+                    : "Quote accepted. Complete checkout to place the order."}
                 </Text>
 
-                <Button
-                  size="small"
-                  onClick={() =>
-                    router.push(
-                      `/${countryCode}/account/orders/details/${quote.draft_order_id}`
-                    )
-                  }
-                >
-                  View Order
-                </Button>
+                {meta.quote_order_id ? (
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      router.push(
+                        `/${countryCode}/account/orders/details/${meta.quote_order_id}`
+                      )
+                    }
+                  >
+                    View Order
+                  </Button>
+                ) : (
+                  <Button
+                    size="small"
+                    isLoading={isAccepting}
+                    onClick={() => {
+                      setIsAccepting(true)
+                      startQuoteCheckout(quote.id)
+                        .then(() => router.push(`/${countryCode}/checkout`))
+                        .catch((e) => toast.error(e.message))
+                        .finally(() => setIsAccepting(false))
+                    }}
+                  >
+                    Continue to checkout
+                  </Button>
+                )}
               </div>
             </Container>
           )}
@@ -247,11 +265,13 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
 
                 <PromptModal
                   title="Accept this quote?"
-                  description="Your order is created at the prices shown."
+                  description="The quoted prices are locked in. You will confirm delivery address, shipping and payment at checkout."
                   handleAction={() => {
                     setIsAccepting(true)
 
                     acceptQuote(quote.id)
+                      .then(() => startQuoteCheckout(quote.id))
+                      .then(() => router.push(`/${countryCode}/checkout`))
                       .catch((e) => toast.error(e.message))
                       .finally(() => setIsAccepting(false))
                   }}

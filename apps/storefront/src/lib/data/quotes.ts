@@ -6,6 +6,7 @@ import {
   getCacheOptions,
   getCacheTag,
   getCartId,
+  setCartId,
 } from "@/lib/data/cookies"
 import {
   QuoteFilterParams,
@@ -198,4 +199,22 @@ export const createQuoteMessage = async (
       ])
       tags.forEach((tag) => revalidateTag(tag, { expire: 0 }))
     })
+}
+
+/** Builds a cart from an accepted quote (agreed prices) and makes it the active cart. */
+export const startQuoteCheckout = async (id: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const res = await sdk.client.fetch<{ cart_id: string }>(
+    `/store/quotes/${id}/checkout`,
+    { method: "POST", body: {}, headers }
+  )
+
+  await setCartId(res.cart_id)
+  const tag = await getCacheTag("carts")
+  revalidateTag(tag, { expire: 0 })
+
+  return res.cart_id
 }

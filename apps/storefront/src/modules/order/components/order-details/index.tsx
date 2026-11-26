@@ -1,6 +1,7 @@
 import { HttpTypes } from "@medusajs/types"
 import { orderStatus, paymentStatus } from "@/lib/util/status-labels"
 import StatusChip from "@/modules/order/components/status-chip"
+import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import { Heading, Text } from "@medusajs/ui"
 
 type OrderDetailsProps = {
@@ -47,6 +48,18 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
           <div className="mb-2 flex justify-between">
             <Text>PO number</Text>
             <Text data-testid="order-po">{(order.metadata as any).po_number}</Text>
+          </div>
+        )}
+
+        {(order.metadata as any)?.quote_id && (
+          <div className="mb-2 flex justify-between">
+            <Text>From quote</Text>
+            <LocalizedClientLink
+              href={`/account/quotes/details/${(order.metadata as any).quote_id}`}
+              className="text-ui-fg-interactive"
+            >
+              Q-{String((order.metadata as any).quote_number ?? "").padStart(6, "0")}
+            </LocalizedClientLink>
           </div>
         )}
 

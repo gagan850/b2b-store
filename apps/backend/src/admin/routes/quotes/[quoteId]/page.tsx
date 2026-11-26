@@ -9,7 +9,7 @@ import {
   Toaster,
   usePrompt,
 } from "@medusajs/ui";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useOrderPreview } from "../../../hooks/api";
@@ -29,8 +29,6 @@ import { SendQuoteDialog } from "../components/send-quote-dialog";
 
 const QuoteDetails = () => {
   const { quoteId } = useParams();
-  const [showSendQuote, setShowSendQuote] = useState(false);
-  const [showRejectQuote, setShowRejectQuote] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const prompt = usePrompt();
   const { t } = useTranslation();
@@ -53,23 +51,13 @@ const QuoteDetails = () => {
   const { mutateAsync: rejectQuote, isPending: isRejectingQuote } =
     useRejectQuote(quoteId!);
 
-  useEffect(() => {
-    if (["pending_merchant", "customer_rejected"].includes(quote?.status!)) {
-      setShowSendQuote(true);
-    } else {
-      setShowSendQuote(false);
-    }
-
-    if (
-      ["customer_rejected", "merchant_rejected", "accepted"].includes(
-        quote?.status!
-      )
-    ) {
-      setShowRejectQuote(false);
-    } else {
-      setShowRejectQuote(true);
-    }
-  }, [quote]);
+  // Derived straight from the status, so nothing lingers after acceptance.
+  const showSendQuote = ["pending_merchant", "customer_rejected"].includes(
+    quote?.status as string
+  );
+  const showRejectQuote = ["pending_merchant", "pending_customer"].includes(
+    quote?.status as string
+  );
 
   const revisionNote: string =
     (quote?.draft_order as any)?.metadata?.quote_revision_note ?? "";
@@ -131,15 +119,23 @@ const QuoteDetails = () => {
               <div className="flex items-center justify-between px-6 py-4">
                 <Text className="txt-compact-small">
                   <CheckCircleSolid className="inline-block mr-2 text-green-500 text-lg" />
-                  Quote accepted by customer. Order is ready for processing.
+                  {(quote.draft_order as any)?.metadata?.quote_order_id
+                    ? `Quote accepted. Order #${(quote.draft_order as any).metadata.quote_order_display_id} has been placed.`
+                    : "Quote accepted. Awaiting the customer to complete checkout."}
                 </Text>
 
-                <Button
-                  size="small"
-                  onClick={() => navigate(`/orders/${quote.draft_order_id}`)}
-                >
-                  View Order
-                </Button>
+                {(quote.draft_order as any)?.metadata?.quote_order_id && (
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      navigate(
+                        `/orders/${(quote.draft_order as any).metadata.quote_order_id}`
+                      )
+                    }
+                  >
+                    View Order
+                  </Button>
+                )}
               </div>
             </Container>
           )}

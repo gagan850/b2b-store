@@ -2,9 +2,7 @@ import {
   confirmOrderEditRequestWorkflow,
   useRemoteQueryStep,
 } from "@medusajs/core-flows";
-import { OrderStatus } from "@medusajs/framework/utils";
 import { createWorkflow } from "@medusajs/framework/workflows-sdk";
-import { updateOrderWorkflow } from "../../order/workflows/update-order";
 import { validateQuoteAcceptanceStep } from "../steps/validate-quote-acceptance";
 import { updateQuotesWorkflow } from "./update-quote";
 
@@ -12,7 +10,8 @@ import { updateQuotesWorkflow } from "./update-quote";
   A workflow that accepts a quote by a customer. 
   
   Once the customer accepts the quote, any staged changes made on the draft order is then committed.
-  The draft order is then converted to an actual order ready for processing.
+  The draft order stays a draft: the buyer finishes in checkout (address, shipping, tax,
+  payment) on a cart built from the quote, and the order is created there.
 */
 export const customerAcceptQuoteWorkflow = createWorkflow(
   "customer-accept-quote",
@@ -35,14 +34,6 @@ export const customerAcceptQuoteWorkflow = createWorkflow(
       input: {
         order_id: quote.draft_order_id,
         confirmed_by: input.customer_id,
-      },
-    });
-
-    updateOrderWorkflow.runAsStep({
-      input: {
-        id: quote.draft_order_id,
-        is_draft_order: false,
-        status: OrderStatus.PENDING,
       },
     });
   }
