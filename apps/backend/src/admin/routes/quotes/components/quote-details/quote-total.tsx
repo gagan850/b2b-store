@@ -21,7 +21,7 @@ export const QuoteTotal = ({
           size="small"
           leading="compact"
         >
-          Original Total
+          Requested total (after discount)
         </Text>
         <Text
           weight="plus"
@@ -40,7 +40,7 @@ export const QuoteTotal = ({
           leading="compact"
           weight="plus"
         >
-          Quote Total
+          Quote total (after discount)
         </Text>
         <Text
           className="text-ui-fg-subtle text-bold"

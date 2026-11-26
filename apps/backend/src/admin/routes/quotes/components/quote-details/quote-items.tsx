@@ -121,10 +121,13 @@ export const QuoteItem = ({
             <AmountCell
               className="text-sm text-right justify-end items-end"
               currencyCode={currencyCode}
-              amount={
-                isAddedItem ? item.detail.quantity * item.unit_price : item.total
+              amount={Number(item.unit_price) * Number(item.quantity)}
+              originalAmount={
+                isAddedItem || !originalItem
+                  ? Number(item.unit_price) * Number(item.quantity)
+                  : Number(originalItem.unit_price) *
+                    Number(originalItem.quantity)
               }
-              originalAmount={isAddedItem ? item?.total : originalItem?.total}
             />
             <div>
               {isAddedItem && (
