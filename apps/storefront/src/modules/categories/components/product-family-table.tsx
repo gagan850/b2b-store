@@ -5,6 +5,7 @@ import { ContractPrices, retrieveContractPrices } from "@/lib/data/contract-pric
 import { useSession } from "@/lib/context/session-context"
 import { convertToLocale } from "@/lib/util/money"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
+import ItemQuoteForm from "@/modules/quotes/components/item-quote-form"
 import { HttpTypes } from "@medusajs/types"
 import { useEffect, useState } from "react"
 
@@ -258,6 +259,7 @@ export default function ProductFamilyTable({
         </table>
       </div>
       </div>
+      <ItemQuoteForm product={product} />
     </section>
   )
 }
