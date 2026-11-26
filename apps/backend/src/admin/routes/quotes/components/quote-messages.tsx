@@ -103,7 +103,7 @@ export function QuoteMessages({
                 `${message.customer.first_name} ${message.customer.last_name}`}
             </div>
 
-            {!!message.item_id && (
+            {!!message.item_id && previewItemsMap.get(message.item_id) && (
               <div className="border border-dashed border-neutral-400 my-2">
                 <QuoteItem
                   item={previewItemsMap.get(message.item_id)!}
