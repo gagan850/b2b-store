@@ -62,7 +62,7 @@ export const QuoteTableItem = ({
             <Badge size="2xsmall" rounded="full" color="red">Removed</Badge>
           ) : (
             updated && !added && (
-              <Badge size="2xsmall" rounded="full" color="orange">Updated by us</Badge>
+              <Badge size="2xsmall" rounded="full" color="orange">Price Revised</Badge>
             )
           )}
         </div>

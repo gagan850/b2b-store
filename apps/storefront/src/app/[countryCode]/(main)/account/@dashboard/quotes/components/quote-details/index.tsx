@@ -142,10 +142,10 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
               </div>
               {priceChanged && (
                 <p className="text-xs text-neutral-500">
-                  You requested this at {formatAmount(Number(order.total), order.currency_code)}.{" "}
+                  Requested total: {formatAmount(Number(order.total), order.currency_code)}.{" "}
                   {Number(order.total) > Number(preview.total)
-                    ? `Our quote saves you ${formatAmount(Number(order.total) - Number(preview.total), order.currency_code)}.`
-                    : "Our quote reflects updated pricing."}
+                    ? `Quoted savings: ${formatAmount(Number(order.total) - Number(preview.total), order.currency_code)}.`
+                    : "Pricing has been revised."}
                 </p>
               )}
             </div>
