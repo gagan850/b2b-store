@@ -36,13 +36,13 @@ export const requestItemQuote = async ({
     {},
     headers
   )
-  const withItem = await sdk.store.cart.createLineItem(
+  await sdk.store.cart.createLineItem(
     cart.id,
     { variant_id: variantId, quantity },
     {},
     headers
   )
-  const { quote } = await sdk.client.fetch<{ quote: { id: string; draft_order?: { display_id?: number } } }>(
+  const { quote } = await sdk.client.fetch<{ quote: { id: string; draft_order?: { display_id?: number; items?: { id: string }[] } } }>(
     `/store/quotes`,
     { method: "POST", body: { cart_id: cart.id }, headers }
   )
@@ -50,7 +50,8 @@ export const requestItemQuote = async ({
   if (text) {
     await createQuoteMessage(quote.id, {
       text,
-      item_id: withItem.cart.items?.[0]?.id ?? null,
+      // the quote works on a copy of the cart items, so use the copy's id
+      item_id: quote.draft_order?.items?.[0]?.id ?? null,
     }).catch(() => null)
   }
   const display = quote.draft_order?.display_id
