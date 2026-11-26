@@ -6,6 +6,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Button, clx, Container } from "@medusajs/ui"
 import Image from "next/image"
 import { useMemo } from "react"
+import ReorderButton from "@/modules/order/components/reorder-button"
 
 type OrderCardProps = {
   order: HttpTypes.StoreOrder
@@ -103,6 +104,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
             >
               Export to PDF
             </Button> */}
+            <ReorderButton orderId={order.id} />
             <LocalizedClientLink href={`/account/orders/details/${order.id}`}>
               <Button
                 data-testid="card-details-link"

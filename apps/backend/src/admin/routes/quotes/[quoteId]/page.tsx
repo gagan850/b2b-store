@@ -25,12 +25,14 @@ import {
   QuoteItems,
   QuoteTotal,
 } from "../components/quote-details";
+import { SendQuoteDialog } from "../components/send-quote-dialog";
 import { QuoteMessages } from "../components/quote-messages";
 
 const QuoteDetails = () => {
   const { quoteId } = useParams();
   const [showSendQuote, setShowSendQuote] = useState(false);
   const [showRejectQuote, setShowRejectQuote] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const prompt = usePrompt();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -70,25 +72,14 @@ const QuoteDetails = () => {
     }
   }, [quote]);
 
-  const handleSendQuote = async () => {
-    const res = await prompt({
-      title: "Send quote?",
-      description:
-        "You are about to send this quote to the customer. Do you want to continue?",
-      confirmText: t("actions.continue"),
-      cancelText: t("actions.cancel"),
-      variant: "confirmation",
+  const handleSendQuote = async (v: { valid_until: string; note: string }) => {
+    await sendQuote(v, {
+      onSuccess: () => {
+        toast.success("Quote sent to customer");
+        setSendOpen(false);
+      },
+      onError: (e) => toast.error(e.message),
     });
-
-    if (res) {
-      await sendQuote(
-        {},
-        {
-          onSuccess: () => toast.success("Successfully sent quote to customer"),
-          onError: (e) => toast.error(e.message),
-        }
-      );
-    }
   };
 
   const handleRejectQuote = async () => {
@@ -167,7 +158,7 @@ const QuoteDetails = () => {
                   <Button
                     size="small"
                     variant="secondary"
-                    onClick={() => handleSendQuote()}
+                    onClick={() => setSendOpen(true)}
                     disabled={isSendingQuote}
                   >
                     Send Quote
@@ -176,6 +167,13 @@ const QuoteDetails = () => {
               </div>
             )}
           </Container>
+
+          <SendQuoteDialog
+            open={sendOpen}
+            setOpen={setSendOpen}
+            busy={isSendingQuote}
+            onSend={handleSendQuote}
+          />
 
           <QuoteMessages quote={quote} preview={preview!} />
 

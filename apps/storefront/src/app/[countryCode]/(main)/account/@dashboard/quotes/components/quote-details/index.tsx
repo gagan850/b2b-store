@@ -38,6 +38,14 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
   const router = useRouter()
   const [isAccepting, setIsAccepting] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
+  const meta = ((order as any).metadata ?? {}) as Record<string, any>
+  const validUntil: Date | null = meta.quote_valid_until
+    ? new Date(meta.quote_valid_until)
+    : null
+  const expired = validUntil ? validUntil.getTime() < Date.now() : false
+  const daysLeft = validUntil
+    ? Math.ceil((validUntil.getTime() - Date.now()) / 86400000)
+    : null
 
   return (
     <div className="flex flex-col gap-y-2 p-0">
@@ -112,6 +120,12 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
             </div>
           </Container>
 
+          {quote.status === "pending_customer" && expired && (
+            <Container className="text-sm text-red-700">
+              This quote has expired. Send us a message below and we will
+              issue a new one.
+            </Container>
+          )}
           {quote.status === "pending_customer" && (
             <div className="flex gap-x-3 justify-end my-4">
               <PromptModal
@@ -143,7 +157,7 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
                 }}
                 isLoading={isAccepting}
               >
-                <Button size="small" variant="primary">
+                <Button size="small" variant="primary" disabled={expired}>
                   Accept Quote
                 </Button>
               </PromptModal>
@@ -156,12 +170,54 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
         <div className="col-span-2 flex flex-col gap-y-2">
           <Container className="flex gap-x-3 justify-between">
             <div className="text-sm">
-              <span className="font-semibold text-ui-fg-subtle">Quote ID:</span>{" "}
-              #<span>{quote.draft_order.display_id}</span>
+              <span className="font-semibold text-ui-fg-subtle">Quote</span>{" "}
+              <span className="whitespace-nowrap">Q-{String(quote.draft_order.display_id).padStart(6, "0")}</span>
             </div>
 
             <QuoteStatusBadge status={quote.status} />
           </Container>
+
+          {(validUntil || meta.quote_note) && (
+            <Container>
+              <Heading level="h3" className="mb-2">
+                Quote terms
+              </Heading>
+              <div className="text-sm text-ui-fg-subtle flex flex-col gap-2">
+                {validUntil && (
+                  <div className="flex justify-between items-center">
+                    <Text>Prices valid until</Text>
+                    <Text
+                      className={
+                        expired
+                          ? "font-semibold text-red-600"
+                          : daysLeft !== null && daysLeft <= 3
+                          ? "font-semibold text-amber-600"
+                          : ""
+                      }
+                      data-testid="quote-valid-until"
+                    >
+                      {validUntil.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                      {expired
+                        ? " (expired)"
+                        : daysLeft !== null && daysLeft <= 7
+                        ? ` (${daysLeft} day${daysLeft === 1 ? "" : "s"} left)`
+                        : ""}
+                    </Text>
+                  </div>
+                )}
+                {meta.quote_note && (
+                  <div>
+                    <Text className="font-semibold">Note from LK Packaging</Text>
+                    <Text className="whitespace-pre-line">{meta.quote_note}</Text>
+                  </div>
+                )}
+              </div>
+            </Container>
+          )}
 
           <Container>
             <Heading level="h3" className="mb-2">

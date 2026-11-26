@@ -28,7 +28,12 @@ export const AdminGetQuoteParams = createFindParams({
   .strict();
 
 export type AdminSendQuoteType = z.infer<typeof AdminSendQuote>;
-export const AdminSendQuote = z.object({}).strict();
+export const AdminSendQuote = z
+  .object({
+    valid_until: z.string().optional(),
+    note: z.string().max(500).optional(),
+  })
+  .strict();
 
 export type AdminRejectQuoteType = z.infer<typeof AdminRejectQuote>;
 export const AdminRejectQuote = z.object({}).strict();

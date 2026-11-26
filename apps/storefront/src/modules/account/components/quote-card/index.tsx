@@ -70,8 +70,8 @@ const QuoteCard = ({ quote }: QuoteCardProps) => {
         </div>
 
         <div className="flex text-small-regular items-center">
-          <DocumentText className="inline-block mr-1" />#
-          <span>{order.display_id}</span>
+          <DocumentText className="inline-block mr-1" />
+          <span>Q-{String(order.display_id).padStart(6, "0")}</span>
         </div>
 
         <div className="flex items-center">

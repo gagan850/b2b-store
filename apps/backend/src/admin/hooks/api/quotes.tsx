@@ -202,17 +202,25 @@ export const useConfirmQuote = (
 
 export const useSendQuote = (
   id: string,
-  options?: UseMutationOptions<AdminQuoteResponse, FetchError, void>
+  options?: UseMutationOptions<
+    AdminQuoteResponse,
+    FetchError,
+    { valid_until?: string; note?: string } | void
+  >
 ) => {
   const queryClient = useQueryClient();
 
-  const sendQuote = async (id: string) =>
+  const sendQuote = async (
+    id: string,
+    body?: { valid_until?: string; note?: string }
+  ) =>
     sdk.client.fetch<AdminQuoteResponse>(`/admin/quotes/${id}/send`, {
       method: "POST",
+      body: body ?? {},
     });
 
   return useMutation({
-    mutationFn: () => sendQuote(id),
+    mutationFn: (body) => sendQuote(id, body ?? undefined),
     onSuccess: (data: any, variables: any, onMutateResult: any, context: any) => {
       queryClient.invalidateQueries({
         queryKey: orderPreviewQueryKey.details(),

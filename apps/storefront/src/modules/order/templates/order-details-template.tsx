@@ -5,6 +5,9 @@ import { HttpTypes } from "@medusajs/types"
 import { Container } from "@medusajs/ui"
 import Button from "@/modules/common/components/button"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
+import ReorderButton from "@/modules/order/components/reorder-button"
+import { invoicesOf } from "@/lib/util/invoices"
+import InvoiceStatusBadge from "@/modules/order/components/invoice-status-badge"
 import Item from "@/modules/order/components/item"
 import OrderDetails from "@/modules/order/components/order-details"
 import OrderSummary from "@/modules/order/components/order-summary"
@@ -30,6 +33,7 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
             <ArrowUturnLeft /> Back
           </Button>
         </LocalizedClientLink>
+        <ReorderButton orderId={order.id} />
       </div>
 
       <div className="small:grid small:grid-cols-6 gap-4 flex flex-col-reverse">
@@ -50,6 +54,30 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         <div className="small:col-span-2 flex flex-col gap-y-2">
           <Container>
             <OrderDetails order={order} />
+          </Container>
+
+          <Container>
+            <div className="flex flex-col gap-2 text-sm" data-testid="order-invoices">
+              <span className="font-semibold text-ui-fg-base">Invoices</span>
+              {invoicesOf(order as any).length === 0 ? (
+                <span className="text-ui-fg-subtle">Not invoiced yet.</span>
+              ) : (
+                invoicesOf(order as any).map((inv) => (
+                  <div key={inv.number} className="flex items-center justify-between gap-2">
+                    <span>
+                      {inv.url ? (
+                        <a href={inv.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:underline">
+                          {inv.number}
+                        </a>
+                      ) : (
+                        inv.number
+                      )}
+                    </span>
+                    <InvoiceStatusBadge invoice={inv} />
+                  </div>
+                ))
+              )}
+            </div>
           </Container>
 
           {(!!order.shipping_address || !!order.shipping_methods?.length) && (
