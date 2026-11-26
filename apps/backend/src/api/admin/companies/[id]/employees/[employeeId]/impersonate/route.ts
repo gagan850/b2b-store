@@ -15,6 +15,12 @@ import { IMPERSONATION_CODE_TTL_SECONDS as CODE_TTL_SECONDS } from "../../../../
  */
 export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
   const { id: companyId, employeeId } = req.params;
+  const body = (req.body ?? {}) as { reason?: string; mode?: string };
+  const reason = String(body.reason ?? "").trim().slice(0, 300);
+  const mode = body.mode === "order" ? "order" : "view";
+  if (reason.length < 3) {
+    throw new MedusaError(MedusaError.Types.INVALID_DATA, "A reason is required");
+  }
   const staffId = req.auth_context?.actor_id;
   if (!staffId) throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Staff login required");
 
@@ -51,6 +57,8 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
       company_name: (employee.company as any)?.name,
       staff_id: staffId,
       staff_name: staffName,
+      reason,
+      mode,
     },
     CODE_TTL_SECONDS
   );
@@ -60,13 +68,13 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
   const log = Array.isArray(customer?.metadata?.impersonation_log)
     ? customer.metadata.impersonation_log
     : [];
-  log.push({ at: new Date().toISOString(), staff_id: staffId, staff: staffName });
+  log.push({ event: "start", at: new Date().toISOString(), staff_id: staffId, staff: staffName, reason, mode });
   await customerModule.updateCustomers(customerId, {
     metadata: { ...(customer?.metadata ?? {}), impersonation_log: log.slice(-50) },
   });
   req.scope
     .resolve(ContainerRegistrationKeys.LOGGER)
-    .info(`[impersonation] ${staffName} (${staffId}) started shopping as customer ${customerId}`);
+    .info(`[impersonation] ${staffName} (${staffId}) started shopping as customer ${customerId} (${mode}): ${reason}`);
 
   res.json({ code });
 };

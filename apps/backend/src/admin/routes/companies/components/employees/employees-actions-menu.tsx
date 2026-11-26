@@ -5,10 +5,7 @@ import { EmployeesUpdateDrawer } from ".";
 import { QueryCompany, QueryEmployee } from "../../../../../types";
 import { DeletePrompt } from "../../../../components/common";
 import { useDeleteEmployee } from "../../../../hooks/api";
-import { sdk } from "../../../../lib/client";
-
-const STOREFRONT_URL =
-  (import.meta as any).env?.VITE_STOREFRONT_URL ?? "http://localhost:8000";
+import { ShopAsBuyerModal } from "./shop-as-buyer-modal";
 
 export const EmployeesActionsMenu = ({
   company,
@@ -19,6 +16,7 @@ export const EmployeesActionsMenu = ({
 }) => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const { mutateAsync: mutateDelete, isPending: loadingDelete } =
     useDeleteEmployee(employee.company_id);
 
@@ -30,24 +28,6 @@ export const EmployeesActionsMenu = ({
     });
   };
 
-  // Opens the storefront signed in as this buyer for 30 minutes. The window is
-  // opened first so the browser does not treat it as a blocked pop-up.
-  const shopAs = async () => {
-    const win = window.open("", "_blank");
-    try {
-      const { code } = await sdk.client.fetch<{ code: string }>(
-        `/admin/companies/${employee.company_id}/employees/${employee.id}/impersonate`,
-        { method: "POST" }
-      );
-      const url = `${STOREFRONT_URL}/api/impersonate?code=${code}`;
-      if (win) win.location.href = url;
-      else window.location.href = url;
-    } catch (e: any) {
-      win?.close();
-      toast.error(e?.message ?? "Could not start a session for this buyer");
-    }
-  };
-
   return (
     <>
       <DropdownMenu>
@@ -57,7 +37,7 @@ export const EmployeesActionsMenu = ({
           </IconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
-          <DropdownMenu.Item className="gap-x-2" onClick={shopAs}>
+          <DropdownMenu.Item className="gap-x-2" onClick={() => setShopOpen(true)}>
             <Eye />
             Shop as this buyer
           </DropdownMenu.Item>
@@ -79,6 +59,12 @@ export const EmployeesActionsMenu = ({
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu>
+      <ShopAsBuyerModal
+        company={company}
+        employee={employee}
+        open={shopOpen}
+        setOpen={setShopOpen}
+      />
       <EmployeesUpdateDrawer
         company={company}
         employee={employee}

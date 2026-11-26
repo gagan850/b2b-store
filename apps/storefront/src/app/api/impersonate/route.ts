@@ -47,6 +47,9 @@ export async function GET(req: NextRequest) {
       staff_id: s.staff_id,
       customer: s.customer_name,
       company: s.company_name,
+      reason: s.reason,
+      mode: s.mode,
+      expires_at: s.expires_at,
     }),
     base
   )

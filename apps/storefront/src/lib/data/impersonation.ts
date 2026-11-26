@@ -9,6 +9,9 @@ export type Impersonation = {
   staff_id: string
   customer: string
   company: string
+  reason?: string
+  mode?: "view" | "order"
+  expires_at?: string
 }
 
 /**

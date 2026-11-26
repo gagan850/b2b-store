@@ -55,5 +55,8 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     company_name: entry.company_name,
     staff_name: entry.staff_name,
     staff_id: entry.staff_id,
+    reason: entry.reason ?? "",
+    mode: entry.mode ?? "view",
+    expires_at: new Date(Date.now() + IMPERSONATION_MINUTES * 60_000).toISOString(),
   });
 };

@@ -513,6 +513,13 @@ export async function placeOrder(
 ): Promise<HttpTypes.StoreCompleteCartResponse> {
   const id = cartId || (await getCartId())
 
+  const staffSession = await getImpersonation()
+  if (staffSession && staffSession.mode !== "order") {
+    throw new Error(
+      "This is a view-only staff session. Orders can't be placed. Exit and start a session with order access."
+    )
+  }
+
   if (!id) {
     throw new Error("No existing cart found when placing an order")
   }
