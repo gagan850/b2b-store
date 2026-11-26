@@ -1,19 +1,18 @@
-import InteractiveLink from "@/modules/common/components/interactive-link"
+import EmptyState from "@/modules/common/components/empty-state"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "404",
-  description: "Something went wrong",
+  title: "Page not found",
 }
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
-      <h1 className="text-2xl-semi text-ui-fg-base">Page not found</h1>
-      <p className="text-small-regular text-ui-fg-base">
-        The page you tried to access does not exist.
-      </p>
-      <InteractiveLink href="/">Go to frontpage</InteractiveLink>
-    </div>
+    <EmptyState
+      icon="search"
+      title="We can't find that page"
+      text="The link may be old or the item may no longer be sold. Try the catalog or search for an item number."
+      primary={{ label: "Go to the home page", href: "/" }}
+      secondary={{ label: "Browse all products", href: "/store" }}
+    />
   )
 }

@@ -3,6 +3,7 @@ import { convertToLocale } from "@/lib/util/money"
 import { invoicesOf } from "@/lib/util/invoices"
 import InvoiceStatusBadge from "@/modules/order/components/invoice-status-badge"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
+import EmptyState from "@/modules/common/components/empty-state"
 import { Heading } from "@medusajs/ui"
 import { Metadata } from "next"
 
@@ -26,9 +27,13 @@ export default async function Invoices() {
       <Heading>Invoices</Heading>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-600">
-          No invoices yet. Invoices appear here once they are issued for your orders.
-        </p>
+        <EmptyState
+          icon="doc"
+          title="No invoices yet"
+          text="Invoices appear here once they are issued for your orders."
+          primary={{ label: "View orders", href: "/account/orders" }}
+          compact
+        />
       ) : (
         <div className="overflow-x-auto rounded-md border border-brand-line bg-white">
           <table className="w-full text-sm">
