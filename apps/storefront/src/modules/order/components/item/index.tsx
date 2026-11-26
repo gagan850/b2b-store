@@ -1,3 +1,4 @@
+import { convertToLocale } from "@/lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
 
@@ -31,12 +32,17 @@ const Item = ({ item, order }: ItemProps) => {
 
         <div className="flex justify-between w-full">
           <div>
-            <Text className="text-xs">
-              <span data-testid="product-quantity">{item.quantity}</span>x{" "}
+            <Text className="text-xs text-ui-fg-subtle">
+              <span data-testid="product-quantity" className="tabular-nums">
+                {Number(item.quantity).toLocaleString("en-US")}
+              </span>{" "}
+              ×{" "}
+              {convertToLocale({
+                amount: item.unit_price,
+                currency_code: order.currency_code,
+              })}
             </Text>
           </div>
-
-          <div></div>
 
           <div>
             <ItemTotalPrice item={item} currencyCode={order.currency_code} />

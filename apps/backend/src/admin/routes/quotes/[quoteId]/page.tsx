@@ -186,13 +186,13 @@ const QuoteDetails = () => {
               <Heading level="h2">Customer</Heading>
             </div>
 
-            <div className="text-ui-fg-subtle grid grid-cols-2 items-start px-6 py-4">
+            <div className="text-ui-fg-subtle grid grid-cols-[110px_minmax(0,1fr)] items-start gap-x-3 px-6 py-4">
               <Text size="small" weight="plus" leading="compact">
                 Email
               </Text>
 
               <Link
-                className="text-sm text-pretty text-blue-500"
+                className="text-sm break-all text-blue-500"
                 to={`/customers/${quote.draft_order?.customer?.id}`}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -210,17 +210,18 @@ const QuoteDetails = () => {
               </Text>
             </div>
 
-            <div className="text-ui-fg-subtle grid grid-cols-2 items-start px-6 py-4">
+            <div className="text-ui-fg-subtle grid grid-cols-[110px_minmax(0,1fr)] items-start gap-x-3 px-6 py-4">
               <Text size="small" weight="plus" leading="compact">
-                Spending Limit
+                Order limit
               </Text>
 
               <Text size="small" leading="compact" className="text-pretty">
-                {formatAmount(
-                  quote?.customer?.employee?.spending_limit,
-                  (quote?.customer?.employee?.company
-                    ?.currency_code as string) || "USD"
-                )}
+                {Number((quote.draft_order?.customer as any)?.employee?.spending_limit) > 0
+                  ? formatAmount(
+                      Number((quote.draft_order?.customer as any)?.employee?.spending_limit),
+                      (quote.draft_order?.currency_code as string) || "USD"
+                    )
+                  : "No limit"}
               </Text>
             </div>
           </Container>
@@ -237,10 +238,10 @@ const QuoteDetails = () => {
 
               <Link
                 className="text-sm text-pretty text-blue-500"
-                to={`/companies/${quote?.customer?.employee?.company.id}`}
+                to={`/companies/${(quote.draft_order?.customer as any)?.employee?.company?.id}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                {quote?.customer?.employee?.company?.name}
+                {(quote.draft_order?.customer as any)?.employee?.company?.name}
               </Link>
             </div>
           </Container>

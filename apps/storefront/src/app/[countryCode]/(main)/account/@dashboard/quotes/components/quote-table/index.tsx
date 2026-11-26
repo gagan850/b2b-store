@@ -54,58 +54,36 @@ export const QuoteTableItem = ({
           </Text>
         </div>
 
-        <div className="flex justify-between w-full items-center">
-          <div>
-            <Text className="text-">
-              <span>{item.quantity}</span>x{" "}
-            </Text>
-          </div>
-
-          <div className="flex gap-x-2">
+        <div className="flex justify-between w-full items-center gap-x-3">
+          <div className="flex flex-wrap items-center gap-x-2 text-sm text-ui-fg-subtle">
+            <span className="tabular-nums">
+              {Number(item.quantity).toLocaleString("en-US")}
+            </span>
+            <span aria-hidden>×</span>
             <AmountCell
               className="text-sm text-right justify-end items-end"
               currencyCode={currencyCode}
               amount={item.unit_price}
               originalAmount={originalItem?.unit_price}
             />
-
             {isAddedItem && (
-              <Badge
-                size="2xsmall"
-                rounded="full"
-                color="blue"
-                className="mr-1"
-              >
-                New
-              </Badge>
+              <Badge size="2xsmall" rounded="full" color="blue">New</Badge>
             )}
-
             {isItemRemoved ? (
-              <Badge size="2xsmall" rounded="full" color="red" className="mr-1">
-                Removed
-              </Badge>
+              <Badge size="2xsmall" rounded="full" color="red">Removed</Badge>
             ) : (
               isItemUpdated && (
-                <Badge
-                  size="2xsmall"
-                  rounded="full"
-                  color="orange"
-                  className="mr-1"
-                >
-                  Modified
-                </Badge>
+                <Badge size="2xsmall" rounded="full" color="orange">Modified</Badge>
               )
             )}
           </div>
 
-          <div>
-            <AmountCell
-              className="text-sm text-right justify-end items-end"
-              currencyCode={currencyCode}
-              amount={item.total}
-              originalAmount={originalItem?.total}
-            />
-          </div>
+          <AmountCell
+            className="text-sm text-right justify-end items-end font-semibold"
+            currencyCode={currencyCode}
+            amount={item.total}
+            originalAmount={originalItem?.total}
+          />
         </div>
       </div>
     </div>

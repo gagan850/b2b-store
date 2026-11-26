@@ -10,6 +10,9 @@ import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 import { QuoteTableItem } from "./quote-table"
 
+const nameOf = (p: any, fallback: string) =>
+  [p?.first_name, p?.last_name].filter(Boolean).join(" ") || p?.email || fallback;
+
 export const CreateQuoteMessageForm = z.object({
   text: z.string().min(1),
   item_id: z.string().nullish(),
@@ -78,10 +81,10 @@ const QuoteMessages = ({
           >
             <div className="font-medium font-sans txt-compact-small text-ui-fg-subtle ">
               {!!message.admin &&
-                `${message.admin.first_name} ${message.admin.last_name}`}
+                nameOf(message.admin, "LK Packaging")}
 
               {!!message.customer &&
-                `${message.customer.first_name} ${message.customer.last_name}`}
+                nameOf(message.customer, "Customer")}
             </div>
 
             {!!message.item_id && previewItemsMap.get(message.item_id) && (

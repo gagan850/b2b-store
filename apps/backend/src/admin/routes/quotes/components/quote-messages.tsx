@@ -18,6 +18,9 @@ import { Form } from "@medusajs/dashboard/components";
 import { useCreateQuoteMessage } from "../../../hooks/api/quotes";
 import { QuoteItem } from "./quote-details";
 
+const nameOf = (p: any, fallback: string) =>
+  [p?.first_name, p?.last_name].filter(Boolean).join(" ") || p?.email || fallback;
+
 export const CreateQuoteMessageForm = z.object({
   text: z.string().min(1),
   item_id: z.string().nullish(),
@@ -97,10 +100,10 @@ export function QuoteMessages({
           >
             <div className="font-medium font-sans txt-compact-small text-ui-fg-subtle ">
               {!!message.admin &&
-                `${message.admin.first_name} ${message.admin.last_name}`}
+                nameOf(message.admin, "Staff")}
 
               {!!message.customer &&
-                `${message.customer.first_name} ${message.customer.last_name}`}
+                nameOf(message.customer, "Customer")}
             </div>
 
             {!!message.item_id && previewItemsMap.get(message.item_id) && (

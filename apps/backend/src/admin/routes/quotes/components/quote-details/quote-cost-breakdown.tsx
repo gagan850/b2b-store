@@ -3,12 +3,21 @@ import { Text } from "@medusajs/ui";
 import { ReactNode } from "react";
 import { formatAmount } from "../../../../utils";
 
+/** Names of the promotions that reduced this order, e.g. "WELCOME10" */
+const discountNames = (order: AdminOrder): string => {
+  const codes = new Set<string>();
+  (order.items ?? []).forEach((i: any) =>
+    (i.adjustments ?? []).forEach((a: any) => a?.code && codes.add(a.code))
+  );
+  return [...codes].join(", ");
+};
+
 export const CostBreakdown = ({ order }: { order: AdminOrder }) => {
   return (
     <div className="text-ui-fg-subtle flex flex-col gap-y-2 px-6 py-4">
       <Cost
         label="Discounts"
-        secondaryValue=""
+        secondaryValue={discountNames(order)}
         value={
           order.discount_total > 0
             ? `- ${formatAmount(order.discount_total, order.currency_code)}`
