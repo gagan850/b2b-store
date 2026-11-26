@@ -13,7 +13,6 @@ import { Suspense } from "react"
 const utilityLinks = [
   { label: "Quick Order", href: "/store" },
   { label: "Order Status", href: "/account/orders" },
-  { label: "Quotes", href: "/account/quotes" },
   { label: "Shipping", href: "/shipping" },
   { label: "Returns", href: "/returns" },
   { label: "Contact", href: "/contact" },

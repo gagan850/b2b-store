@@ -39,10 +39,10 @@ export default async function Hero(_: { countryCode: string }) {
             Shop all products
           </LocalizedClientLink>
           <LocalizedClientLink
-            href="/account/quotes"
+            href="/account/orders"
             className="inline-flex items-center justify-center rounded-md border border-white/40 px-6 py-3 text-sm font-semibold hover:bg-white/10"
           >
-            Request a quote
+            Order history
           </LocalizedClientLink>
         </div>
       </section>
