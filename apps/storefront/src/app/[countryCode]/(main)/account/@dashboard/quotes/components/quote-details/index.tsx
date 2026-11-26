@@ -24,6 +24,13 @@ type QuoteDetailsProps = {
   countryCode: string
 }
 
+const Row = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
+  <div className="flex items-center justify-between">
+    <span className="text-neutral-600">{label}</span>
+    <span className={accent ? "font-semibold text-green-700" : "text-brand-ink"}>{value}</span>
+  </div>
+)
+
 const QuoteDetails: React.FC<QuoteDetailsProps> = ({
   quote,
   preview,
@@ -42,6 +49,14 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
   const validUntil: Date | null = meta.quote_valid_until
     ? new Date(meta.quote_valid_until)
     : null
+  const discountNames = [
+    ...new Set(
+      (order.items ?? []).flatMap((i: any) =>
+        (i.adjustments ?? []).map((a: any) => a?.code).filter(Boolean)
+      )
+    ),
+  ].join(", ")
+  const priceChanged = Number(order.total) !== Number(preview.total)
   const expired = validUntil ? validUntil.getTime() < Date.now() : false
   const daysLeft = validUntil
     ? Math.ceil((validUntil.getTime() - Date.now()) / 86400000)
@@ -97,26 +112,35 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
           ))}
 
           <Container className="p-0">
-            <div className="py-4">
-              <div className="flex items-center justify-between mb-2 px-6">
-                <span className="txt-small text-ui-fg-subtle font-semibold">
-                  Current Total
-                </span>
-
-                <span className="txt-small text-ui-fg-subtle">
-                  {formatAmount(order.total, order.currency_code)}
+            <div className="flex flex-col gap-y-2 px-6 py-4 text-sm" data-testid="quote-summary">
+              <Row label="Subtotal" value={formatAmount(Number(preview.item_subtotal ?? preview.subtotal ?? 0), order.currency_code)} />
+              {Number(preview.discount_total) > 0 && (
+                <Row
+                  label={discountNames ? `Discount (${discountNames})` : "Discount"}
+                  value={`- ${formatAmount(Number(preview.discount_total), order.currency_code)}`}
+                  accent
+                />
+              )}
+              {Number(preview.shipping_total) > 0 && (
+                <Row label="Shipping" value={formatAmount(Number(preview.shipping_total), order.currency_code)} />
+              )}
+              {Number(preview.tax_total) > 0 && (
+                <Row label="Tax" value={formatAmount(Number(preview.tax_total), order.currency_code)} />
+              )}
+              <div className="mt-1 flex items-center justify-between border-t border-brand-line pt-3">
+                <span className="font-bold text-brand-navy">Quote total</span>
+                <span className="text-base font-bold text-brand-navy">
+                  {formatAmount(Number(preview.total), order.currency_code)}
                 </span>
               </div>
-
-              <div className="flex items-center justify-between px-6">
-                <span className="txt-small text-ui-fg-subtle font-semibold">
-                  New Total
-                </span>
-
-                <span className="txt-small text-ui-fg-subtle">
-                  {formatAmount(preview.total, order.currency_code)}
-                </span>
-              </div>
+              {priceChanged && (
+                <p className="text-xs text-neutral-500">
+                  You requested this at {formatAmount(Number(order.total), order.currency_code)}.{" "}
+                  {Number(order.total) > Number(preview.total)
+                    ? `Our quote saves you ${formatAmount(Number(order.total) - Number(preview.total), order.currency_code)}.`
+                    : "Our quote reflects updated pricing."}
+                </p>
+              )}
             </div>
           </Container>
 
