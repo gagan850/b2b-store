@@ -8,7 +8,7 @@ import StoreBreadcrumb from "@/modules/store/components/store-breadcrumb"
 import type { SearchClient } from "instantsearch.js"
 import { Configure, InstantSearch } from "react-instantsearch"
 
-const HITS_PER_PAGE = 12
+const HITS_PER_PAGE = 15
 
 const SearchStoreTemplate = ({ currencyCode }: { currencyCode: string }) => (
   <div className="bg-neutral-100">
