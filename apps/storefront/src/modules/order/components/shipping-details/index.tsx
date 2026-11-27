@@ -1,3 +1,5 @@
+import { describeDelivery, kindOf } from "@/lib/util/delivery"
+import { estimate } from "@/lib/util/ship-dates"
 import { HttpTypes } from "@medusajs/types"
 import { Heading, Text } from "@medusajs/ui"
 
@@ -6,64 +8,58 @@ type ShippingDetailsProps = {
 }
 
 const ShippingDetails = ({ order }: ShippingDetailsProps) => {
-  // order.shipping_address = {
-  //   first_name: "Riqwan",
-  //   last_name: "Thamir",
-  //   address_1: "11c heidestrasse",
-  //   address_2: "Berlin - 10557",
-  //   country_code: "DE",
-  //   postal_code: "10557",
-  //   city: "Berlin",
-  //   company: "MedusaJS Aps",
-  // }
-  // order.billing_address = {
-  //   first_name: "Riqwan",
-  //   last_name: "Thamir",
-  //   address_1: "11c heidestrasse",
-  //   address_2: "Berlin - 10557",
-  //   country_code: "DE",
-  //   postal_code: "10557",
-  //   city: "Berlin",
-  // }
-  // order.shipping_methods = [
-  //   {
-  //     name: "Webshiper",
-  //     total: 1055,
-  //   },
-  // ]
-  return (
-    !!order.shipping_address && (
-      <>
-        <Heading level="h3" className="mb-2">
-          Delivery Address
-        </Heading>
+  const method = order.shipping_methods?.[0] as any
+  const pickup = method && kindOf(method) === "pickup"
+  const a = order.shipping_address
+  const meta = (order.metadata ?? {}) as Record<string, any>
+  const eta = estimate(method?.data, new Date(order.created_at ?? Date.now()))
 
-        {!!order.shipping_address && (
-          <div>
-            <Text className="txt-medium text-ui-fg-subtle capitalize">
-              {order.shipping_address?.company}
-            </Text>
-            <Text className="txt-medium text-ui-fg-subtle capitalize">
-              {order.shipping_address?.first_name}{" "}
-              {order.shipping_address?.last_name}
-            </Text>
-            <Text className="txt-medium text-ui-fg-subtle capitalize">
-              {order.shipping_address?.phone}
-            </Text>
+  return (
+    <div className="flex flex-col gap-4">
+      {method && (
+        <div>
+          <Heading level="h3" className="mb-1">
+            Delivery
+          </Heading>
+          <Text className="txt-medium text-ui-fg-subtle" data-testid="delivery-method">
+            {describeDelivery(method, method.data)}
+          </Text>
+          <Text className="txt-medium text-ui-fg-subtle">
+            {pickup ? "Ready for pickup " : "Estimated ship date "}
+            {eta.shipDate}
+            {eta.arrive ? ` · Est. delivery ${eta.arrive}` : ""}
+          </Text>
+          {meta.blind_ship && (
             <Text className="txt-medium text-ui-fg-subtle">
-              {order.shipping_address?.address_1}{" "}
-              {order.shipping_address?.address_2}
+              Blind ship{meta.blind_ship_name ? ` as ${meta.blind_ship_name}` : ""}
             </Text>
-            <Text className="txt-medium text-ui-fg-subtle">
-              {order.shipping_address?.postal_code},{" "}
-              {order.shipping_address?.city},{" "}
-              {order.shipping_address?.province},{" "}
-              {order.shipping_address?.country_code?.toUpperCase()}
+          )}
+          {meta.notes && (
+            <Text className="txt-medium text-ui-fg-subtle">Instructions: {meta.notes}</Text>
+          )}
+        </div>
+      )}
+      {!pickup && a && (
+        <div>
+          <Heading level="h3" className="mb-1">
+            Ship to
+          </Heading>
+          <div className="txt-medium text-ui-fg-subtle">
+            {a.company && <Text>{a.company}</Text>}
+            <Text>
+              {a.first_name} {a.last_name}
             </Text>
+            <Text>
+              {a.address_1} {a.address_2}
+            </Text>
+            <Text>
+              {[a.city, a.province].filter(Boolean).join(", ")} {a.postal_code}
+            </Text>
+            {a.phone && <Text>{a.phone}</Text>}
           </div>
-        )}
-      </>
-    )
+        </div>
+      )}
+    </div>
   )
 }
 

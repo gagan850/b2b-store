@@ -4,6 +4,7 @@ import Input from "@/modules/common/components/input"
 import { B2BCart, B2BCustomer } from "@/types"
 import { HttpTypes } from "@medusajs/types"
 import { Container } from "@medusajs/ui"
+import compareAddresses from "@/lib/util/compare-addresses"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 
@@ -68,10 +69,27 @@ const ShippingAddressForm = ({
   }
 
   useEffect(() => {
-    if (cart && cart.shipping_address) {
-      setFormAddress(cart?.shipping_address)
+    if (cart?.shipping_address?.address_1) {
+      setFormAddress(cart.shipping_address)
+    } else if (addressesInRegion?.length) {
+      // Start from the buyer's default (or first) saved address
+      const def =
+        addressesInRegion.find((a: any) => a.is_default_shipping) ?? addressesInRegion[0]
+      setFormAddress(def as HttpTypes.StoreCartAddress)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart])
+
+  const alreadySaved = useMemo(
+    () =>
+      (customer?.addresses ?? []).some((a) =>
+        compareAddresses(
+          a,
+          mapKeys(formData, (_, key) => key.replace("shipping_address.", ""))
+        )
+      ),
+    [customer?.addresses, formData]
+  )
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -87,10 +105,8 @@ const ShippingAddressForm = ({
   return (
     <>
       {customer && (addressesInRegion?.length || 0) > 0 && (
-        <Container className="mb-6 flex flex-col gap-y-4 p-5">
-          <p className="text-small-regular">
-            {`Hi ${customer.first_name}, do you want to use one of your saved addresses?`}
-          </p>
+        <Container className="mb-6 flex flex-col gap-y-3 p-5">
+          <p className="text-sm font-semibold text-brand-navy">Saved addresses</p>
           <AddressSelect
             addresses={customer.addresses}
             addressInput={
@@ -170,7 +186,7 @@ const ShippingAddressForm = ({
             data-testid="shipping-city-input"
           />
           <Input
-            label="Province"
+            label="State"
             name="shipping_address.province"
             autoComplete="address-level1"
             value={formData["shipping_address.province"]}
@@ -188,6 +204,19 @@ const ShippingAddressForm = ({
             data-testid="shipping-country-select"
           />
         </div>
+        {customer && !alreadySaved && (
+          <label className="col-span-2 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="save_address"
+              value="1"
+              defaultChecked
+              className="accent-brand-blue"
+              data-testid="save-shipping-address"
+            />
+            Save this address to my address book
+          </label>
+        )}
       </div>
     </>
   )

@@ -34,6 +34,10 @@ export const AdminUpdateCompany = z
     zip: z.string().optional(),
     country: z.string().optional(),
     logo_url: z.string().optional().nullable(),
+    payment_terms: z
+      .enum(["prepaid", "net_15", "net_30", "net_45", "net_60"])
+      .optional(),
+    credit_hold: z.boolean().optional(),
   })
   .strict();
 

@@ -4,7 +4,18 @@ import { childrenOf } from "./category-sidebar"
 
 type Cat = HttpTypes.StoreProductCategory
 
-/** Drill-down grid: each child category as a tile, listing its own children underneath. */
+/** First product image found anywhere under a category, used as its tile picture. */
+export const categoryImage = (categories: Cat[], cat: Cat): string | null => {
+  const own = (cat.products ?? []).find((p: any) => p.thumbnail) as any
+  if (own) return own.thumbnail
+  for (const child of childrenOf(categories, cat.id)) {
+    const img = categoryImage(categories, child)
+    if (img) return img
+  }
+  return (cat.metadata?.image as string) ?? null
+}
+
+/** Picture grid of child categories: image, name, nothing else. */
 export default function SubcategoryTiles({
   categories,
   parent,
@@ -15,45 +26,31 @@ export default function SubcategoryTiles({
   const kids = childrenOf(categories, parent?.id ?? null)
 
   return (
-    <ul className="grid grid-cols-1 gap-4 xsmall:grid-cols-2 medium:grid-cols-3 large:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 small:grid-cols-4">
       {kids.map((c) => {
-        const grandkids = childrenOf(categories, c.id)
+        const img = categoryImage(categories, c)
         return (
-          <li key={c.id} className="panel flex flex-col overflow-hidden">
+          <li key={c.id}>
             <LocalizedClientLink
               href={`/categories/${c.handle}`}
-              className="group flex items-center gap-4 border-b border-brand-line p-4 hover:bg-brand-blue-light"
+              className="group flex flex-col items-center gap-3 text-center"
+              data-testid="category-tile"
             >
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-brand-canvas text-3xl">
-                {(c.metadata?.icon as string) ?? "📦"}
+              <span className="flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden bg-white">
+                {img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={img}
+                    alt=""
+                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="text-6xl">{(c.metadata?.icon as string) ?? "📦"}</span>
+                )}
               </span>
-              <span className="text-base font-black leading-tight text-brand-navy group-hover:text-brand-blue group-hover:underline">
+              <span className="text-base font-bold text-brand-navy group-hover:text-brand-blue group-hover:underline">
                 {c.name}
               </span>
-            </LocalizedClientLink>
-            <ul className="flex flex-1 flex-col gap-1 p-4 text-sm">
-              {grandkids.length > 0 ? (
-                grandkids.map((g) => (
-                  <li key={g.id}>
-                    <LocalizedClientLink
-                      href={`/categories/${g.handle}`}
-                      className="text-brand-blue hover:underline"
-                    >
-                      › {g.name}
-                    </LocalizedClientLink>
-                  </li>
-                ))
-              ) : (
-                <li className="text-neutral-500">
-                  {c.products?.length ?? 0} product families
-                </li>
-              )}
-            </ul>
-            <LocalizedClientLink
-              href={`/categories/${c.handle}`}
-              className="border-t border-brand-line px-4 py-2 text-xs font-bold uppercase tracking-wide text-brand-blue hover:bg-brand-blue-light"
-            >
-              Shop {c.name} ›
             </LocalizedClientLink>
           </li>
         )

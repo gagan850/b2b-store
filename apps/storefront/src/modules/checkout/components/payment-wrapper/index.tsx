@@ -8,7 +8,9 @@ import {
 } from "@/lib/constants"
 import { B2BCart } from "@/types"
 import { PayPalScriptProvider } from "@paypal/react-paypal-js"
-import { loadStripe, Stripe } from "@stripe/stripe-js"
+// "pure" only loads Stripe.js when a Stripe key is actually used
+import { loadStripe } from "@stripe/stripe-js/pure"
+import type { Stripe } from "@stripe/stripe-js"
 import React, { createContext } from "react"
 import StripeWrapper from "./stripe-wrapper"
 

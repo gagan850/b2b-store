@@ -1,16 +1,26 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/framework";
+import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework";
 import { RemoteQueryFunction } from "@medusajs/framework/types";
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { customerRejectQuoteWorkflow } from "../../../../../workflows/quote/workflows";
 import { RejectQuoteType } from "../../validators";
 
 export const POST = async (
-  req: MedusaRequest<RejectQuoteType>,
+  req: AuthenticatedMedusaRequest<RejectQuoteType>,
   res: MedusaResponse
 ) => {
   const { id } = req.params;
   const query = req.scope.resolve<RemoteQueryFunction>(
     ContainerRegistrationKeys.QUERY
+  );
+
+  // Only the buyer who owns the quote can reject it
+  await query.graph(
+    {
+      entity: "quote",
+      fields: ["id"],
+      filters: { id, customer_id: req.auth_context.actor_id },
+    },
+    { throwIfKeyNotFound: true }
   );
 
   await customerRejectQuoteWorkflow(req.scope).run({

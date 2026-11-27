@@ -1,3 +1,4 @@
+import { getFeatures } from "@/lib/data/features"
 import { listApprovals } from "@/lib/data/approvals"
 import { retrieveCompany } from "@/lib/data/companies"
 import { retrieveCustomer } from "@/lib/data/customer"
@@ -21,8 +22,9 @@ export default async function Orders() {
     (await retrieveCompany(customer?.employee?.company_id!)) || {}
 
   const approval_required =
-    approval_settings?.requires_admin_approval ||
-    approval_settings?.requires_sales_manager_approval
+    (await getFeatures()).approvals &&
+    (approval_settings?.requires_admin_approval ||
+      approval_settings?.requires_sales_manager_approval)
 
   const { carts_with_approvals } = await listApprovals({
     status: ApprovalStatusType.PENDING,

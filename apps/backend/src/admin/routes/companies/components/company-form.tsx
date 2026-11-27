@@ -1,7 +1,15 @@
-import { Button, Drawer, Input, Label, Select, Text } from "@medusajs/ui";
+import { Button, Drawer, Input, Label, Select, Switch, Text } from "@medusajs/ui";
 import { AdminUpdateCompany } from "../../../../types";
 import { useState } from "react";
 import { useRegions } from "../../../hooks/api";
+
+export const PAYMENT_TERMS = [
+  { value: "prepaid", label: "Prepaid (card only)" },
+  { value: "net_15", label: "Net 15" },
+  { value: "net_30", label: "Net 30" },
+  { value: "net_45", label: "Net 45" },
+  { value: "net_60", label: "Net 60" },
+];
 
 export function CompanyForm({
   company,
@@ -141,6 +149,48 @@ export function CompanyForm({
                   ))}
                 </Select.Content>
               </Select>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 rounded-lg border border-ui-border-base p-3 mt-2">
+            <Text size="small" weight="plus">
+              Billing
+            </Text>
+            <Label size="xsmall">Payment Terms</Label>
+            <Select
+              name="payment_terms"
+              value={formData.payment_terms || "prepaid"}
+              onValueChange={(value) =>
+                setFormData({ ...formData, payment_terms: value as any })
+              }
+            >
+              <Select.Trigger>
+                <Select.Value placeholder="Select terms" />
+              </Select.Trigger>
+              <Select.Content className="z-50">
+                {PAYMENT_TERMS.map((t) => (
+                  <Select.Item key={t.value} value={t.value}>
+                    {t.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select>
+            <Text size="xsmall" className="text-ui-fg-subtle">
+              Any terms other than Prepaid let buyers choose "Bill to account"
+              at checkout.
+            </Text>
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex flex-col">
+                <Label size="xsmall">Credit Hold</Label>
+                <Text size="xsmall" className="text-ui-fg-subtle">
+                  Blocks bill-to-account orders until released.
+                </Text>
+              </div>
+              <Switch
+                checked={!!formData.credit_hold}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, credit_hold: checked })
+                }
+              />
             </div>
           </div>
           {/* TODO: Add logo upload */}

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Open+Sans+Condensed:wght@700&display=swap");
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
@@ -116,23 +117,20 @@
    to apply your own brand kit. These override Medusa UI's tokens, so
    buttons, links, focus rings and inputs pick up the brand automatically. */
 :root[data-mode="light"] {
-  --brand-navy: 11 31 63;
-  --brand-blue: 21 86 201;
-  --brand-accent: 242 140 27;
 
-  --fg-interactive: rgba(21, 86, 201, 1);
-  --fg-interactive-hover: rgba(15, 67, 160, 1);
-  --bg-interactive: rgba(21, 86, 201, 1);
-  --border-interactive: rgba(21, 86, 201, 1);
-  --button-inverted: rgba(21, 86, 201, 1);
-  --button-inverted-hover: rgba(15, 67, 160, 1);
-  --button-inverted-pressed: rgba(11, 52, 128, 1);
-  --buttons-inverted: 0px 1px 2px 0px rgba(11, 31, 63, 0.3), 0px 0px 0px 1px rgba(15, 67, 160, 1);
-  --borders-interactive-with-active: 0px 0px 0px 4px rgba(21, 86, 201, 0.2), 0px 0px 0px 1px rgba(21, 86, 201, 1);
-  --borders-focus: 0px 0px 0px 1px rgba(255, 255, 255, 1), 0px 0px 0px 3px rgba(21, 86, 201, 0.6);
-  --bg-subtle: rgba(243, 245, 249, 1);
-  --fg-base: rgba(26, 34, 51, 1);
-  --border-base: rgba(214, 220, 230, 1);
+  --fg-interactive: rgba(0, 112, 183, 1);
+  --fg-interactive-hover: rgba(0, 90, 147, 1);
+  --bg-interactive: rgba(0, 112, 183, 1);
+  --border-interactive: rgba(0, 112, 183, 1);
+  --button-inverted: rgba(0, 112, 183, 1);
+  --button-inverted-hover: rgba(0, 90, 147, 1);
+  --button-inverted-pressed: rgba(0, 72, 118, 1);
+  --buttons-inverted: 0px 1px 2px 0px rgba(22, 62, 92, 0.3), 0px 0px 0px 1px rgba(0, 90, 147, 1);
+  --borders-interactive-with-active: 0px 0px 0px 4px rgba(0, 112, 183, 0.2), 0px 0px 0px 1px rgba(0, 112, 183, 1);
+  --borders-focus: 0px 0px 0px 1px rgba(255, 255, 255, 1), 0px 0px 0px 3px rgba(0, 112, 183, 0.6);
+  --bg-subtle: rgba(244, 247, 250, 1);
+  --fg-base: rgba(51, 51, 51, 1);
+  --border-base: rgba(213, 222, 230, 1);
 }
 
 body {

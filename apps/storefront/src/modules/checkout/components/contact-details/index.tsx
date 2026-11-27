@@ -86,7 +86,7 @@ const ContactDetails = ({
               }
             )}
           >
-            Contact Details
+            Order details
             {!isOpen && isCompleted && <CheckCircleSolid />}
           </Heading>
 
@@ -112,7 +112,7 @@ const ContactDetails = ({
               <div className="flex flex-col gap-y-2 items-end">
                 <SubmitButton
                   className="mt-6"
-                  data-testid="submit-address-button"
+                  data-testid="submit-contact-details-button"
                 >
                   {requiresApproval &&
                   cartApprovalStatus !== ApprovalStatusType.APPROVED &&
@@ -137,14 +137,20 @@ const ContactDetails = ({
               >
                 <Text className="txt-medium text-ui-fg-subtle">
                   {cart.email}
+                  {cart.metadata?.po_number ? ` · PO ${cart.metadata.po_number}` : ""}
                 </Text>
+                {cart.metadata?.blind_ship ? (
+                  <Text className="txt-medium text-ui-fg-subtle">
+                    Blind ship
+                    {cart.metadata?.blind_ship_name
+                      ? ` as ${cart.metadata.blind_ship_name}`
+                      : ""}
+                  </Text>
+                ) : null}
                 {cart.metadata?.notes ? (
-                  <div>
-                    <Divider />
-                    <Text className="txt-medium text-ui-fg-subtle pt-2">
-                      Note: {cart.metadata?.notes as string}
-                    </Text>
-                  </div>
+                  <Text className="txt-medium text-ui-fg-subtle">
+                    Instructions: {cart.metadata?.notes as string}
+                  </Text>
                 ) : null}
               </div>
             </div>

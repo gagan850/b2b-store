@@ -1,9 +1,9 @@
 import { listCartShippingMethods } from "@/lib/data/fulfillment"
+import { ACCOUNT_PROVIDER_ID, CHECKOUT_PAYMENT_PROVIDERS } from "@/lib/constants"
 import { listCartPaymentMethods } from "@/lib/data/payment"
 import ApprovalStatusBanner from "@/modules/cart/components/approval-status-banner"
 import SignInPrompt from "@/modules/cart/components/sign-in-prompt"
 import BillingAddress from "@/modules/checkout/components/billing-address"
-import Company from "@/modules/checkout/components/company"
 import ContactDetails from "@/modules/checkout/components/contact-details"
 import Payment from "@/modules/checkout/components/payment"
 import Shipping from "@/modules/checkout/components/shipping"
@@ -25,7 +25,15 @@ export default async function CheckoutForm({
   }
 
   const shippingMethods = await listCartShippingMethods(cart.id)
-  const paymentMethods = await listCartPaymentMethods(cart.region?.id ?? "")
+  const allPaymentMethods = await listCartPaymentMethods(cart.region?.id ?? "")
+  // "Bill to account" is offered to every company buyer (credit hold is checked on the order)
+  const canBillToAccount = !!cart.company
+  // Checkout offers two ways to pay: Bill to account and Credit card
+  const paymentMethods = allPaymentMethods?.filter(
+    (m: any) =>
+      CHECKOUT_PAYMENT_PROVIDERS.includes(m.id) &&
+      (m.id !== ACCOUNT_PROVIDER_ID || canBillToAccount)
+  )
   const requiresApproval =
     cart.company?.approval_settings?.requires_admin_approval ||
     cart.company?.approval_settings?.requires_sales_manager_approval
@@ -54,11 +62,9 @@ export default async function CheckoutForm({
             <ApprovalStatusBanner cart={cart} />
           )}
 
-        {cart?.company && <Company cart={cart} />}
-
         <ShippingAddress cart={cart} customer={customer} />
 
-        <BillingAddress cart={cart} />
+        <BillingAddress cart={cart} customer={customer} />
 
         <Shipping cart={cart} availableShippingMethods={shippingMethods} />
 
@@ -67,7 +73,11 @@ export default async function CheckoutForm({
         {(customer?.employee?.is_admin &&
           cart.approval_status?.status === ApprovalStatusType.APPROVED) ||
         !requiresApproval ? (
-          <Payment cart={cart} availablePaymentMethods={paymentMethods} />
+          <Payment
+            cart={cart}
+            customer={customer}
+            availablePaymentMethods={paymentMethods}
+          />
         ) : null}
       </div>
     </div>

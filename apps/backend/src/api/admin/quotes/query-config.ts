@@ -9,6 +9,7 @@ export const quoteFields = [
   "*messages.customer",
   "cart.id",
   "draft_order.id",
+  "draft_order.metadata",
   "draft_order.currency_code",
   "draft_order.display_id",
   "draft_order.region_id",

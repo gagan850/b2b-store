@@ -49,7 +49,7 @@ const SearchResults = ({ currencyCode }: { currencyCode: string }) => {
         </Container>
       ) : (
         <ul
-          className="grid grid-cols-1 w-full small:grid-cols-3 medium:grid-cols-4 large:grid-cols-5 gap-3"
+          className="grid grid-cols-1 w-full small:grid-cols-3 large:grid-cols-5 gap-3"
           data-testid="products-list"
         >
           {items.map((hit) => (

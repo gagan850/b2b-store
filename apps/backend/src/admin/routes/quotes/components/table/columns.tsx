@@ -14,11 +14,20 @@ export const useQuotesTableColumns = () => {
     () => [
       columnHelper.accessor("draft_order.display_id", {
         header: t("fields.id"),
-        cell: ({ getValue }) => <TextCell text={`#${getValue()}`} />,
+        cell: ({ getValue }) => (
+          <TextCell text={`Q-${String(getValue()).padStart(6, "0")}`} />
+        ),
       }),
       columnHelper.accessor("status", {
         header: t("fields.status"),
-        cell: ({ getValue }) => <QuoteStatusBadge status={getValue()} />,
+        cell: ({ getValue, row }) => (
+          <QuoteStatusBadge
+            status={getValue()}
+            revision={
+              !!(row.original as any)?.draft_order?.metadata?.quote_revision_note
+            }
+          />
+        ),
       }),
       columnHelper.accessor("customer.email", {
         header: t("fields.email"),

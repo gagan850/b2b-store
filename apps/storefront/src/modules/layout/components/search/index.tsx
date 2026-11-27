@@ -42,7 +42,7 @@ const Search = ({
         title="Search for products"
         className={
           variant === "bar"
-            ? "flex w-full max-w-3xl items-center overflow-hidden rounded-md bg-white text-left text-sm text-neutral-500 outline-none ring-brand-accent focus-visible:ring-2"
+            ? "flex w-full max-w-3xl items-center overflow-hidden rounded-md border-2 border-brand-blue bg-white text-left text-sm text-neutral-500 outline-none ring-brand-accent focus-visible:ring-2"
             : "transition-fg inline-flex w-fit items-center justify-center outline-none px-3 py-1.5 rounded-full hover:bg-neutral-100"
         }
         data-testid="nav-search-button"
@@ -50,9 +50,9 @@ const Search = ({
         {variant === "bar" ? (
           <>
             <span className="flex-1 px-4 py-2.5">
-              Search by keyword or item #
+              Enter keyword or item #
             </span>
-            <span className="flex h-full items-center bg-brand-accent px-4 py-2.5 text-white">
+            <span className="flex h-full items-center bg-brand-blue px-4 py-2.5 text-white">
               <MagnifyingGlass />
             </span>
           </>

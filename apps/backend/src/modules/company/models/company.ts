@@ -20,5 +20,11 @@ export const Company = model.define("company", {
   spending_limit_reset_frequency: model
     .enum(["never", "daily", "weekly", "monthly", "yearly"])
     .default("monthly"),
+  // Bill-to-account: "prepaid" means the company must pay by card at checkout
+  payment_terms: model
+    .enum(["prepaid", "net_15", "net_30", "net_45", "net_60"])
+    .default("prepaid"),
+  // Set from the ERP when an account is over its limit or past due
+  credit_hold: model.boolean().default(false),
   employees: model.hasMany(() => Employee),
 });

@@ -1,6 +1,13 @@
 "use client"
 
-import { isAdyen, isManual, isPaypal, isStripeLike } from "@/lib/constants"
+import {
+  isAccount,
+  isSavedCardProvider,
+  isAdyen,
+  isManual,
+  isPaypal,
+  isStripeLike,
+} from "@/lib/constants"
 import { createCartApproval, placeOrder } from "@/lib/data/cart"
 import { getPaymentErrorMessage } from "@/lib/util/payment-error"
 import ErrorMessage from "@/modules/checkout/components/error-message"
@@ -82,6 +89,8 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
           data-testid={dataTestId}
         />
       )
+    case isAccount(paymentSession?.provider_id):
+    case isSavedCardProvider(paymentSession?.provider_id):
     case isManual(paymentSession?.provider_id):
       return (
         <ManualTestPaymentButton
@@ -141,7 +150,7 @@ const RequestApprovalButton = ({
             : "This order requires approval by a sales manager."}
         </Text>
         <Button
-          className="w-full h-10 rounded-full shadow-none"
+          className="w-full h-10 rounded-md shadow-none"
           disabled={notReady || isPendingAdminApproval}
           onClick={createApproval}
           isLoading={submitting}

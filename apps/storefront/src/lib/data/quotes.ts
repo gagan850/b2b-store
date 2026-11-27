@@ -6,6 +6,7 @@ import {
   getCacheOptions,
   getCacheTag,
   getCartId,
+  setCartId,
 } from "@/lib/data/cookies"
 import {
   QuoteFilterParams,
@@ -148,6 +149,27 @@ export const rejectQuote = async (id: string) => {
     })
 }
 
+export const reviseQuote = async (id: string, note: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch<{ ok: boolean }>(`/store/quotes/${id}/revise`, {
+      method: "POST",
+      body: { note },
+      headers,
+    })
+    .finally(async () => {
+      const tags = await Promise.all([
+        getCacheTag("quotes"),
+        getCacheTag(["quote", id].join("-")),
+        getCacheTag(["quotePreview", id].join("-")),
+      ])
+      tags.forEach((tag) => revalidateTag(tag, { expire: 0 }))
+    })
+}
+
 export const createQuoteMessage = async (
   id: string,
   body: StoreCreateQuoteMessage
@@ -177,4 +199,22 @@ export const createQuoteMessage = async (
       ])
       tags.forEach((tag) => revalidateTag(tag, { expire: 0 }))
     })
+}
+
+/** Builds a cart from an accepted quote (agreed prices) and makes it the active cart. */
+export const startQuoteCheckout = async (id: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const res = await sdk.client.fetch<{ cart_id: string }>(
+    `/store/quotes/${id}/checkout`,
+    { method: "POST", body: {}, headers }
+  )
+
+  await setCartId(res.cart_id)
+  const tag = await getCacheTag("carts")
+  revalidateTag(tag, { expire: 0 })
+
+  return res.cart_id
 }

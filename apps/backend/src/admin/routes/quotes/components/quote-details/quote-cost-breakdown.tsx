@@ -1,17 +1,34 @@
-import { AdminOrder } from "@medusajs/framework/types";
+import { AdminOrder, AdminOrderPreview } from "@medusajs/framework/types";
 import { Text } from "@medusajs/ui";
 import { ReactNode } from "react";
 import { formatAmount } from "../../../../utils";
+import { revisedTotals } from "../../../../lib/quote-totals";
 
-export const CostBreakdown = ({ order }: { order: AdminOrder }) => {
+/** Names of the promotions that reduced this order, e.g. "WELCOME10" */
+const discountNames = (order: AdminOrder): string => {
+  const codes = new Set<string>();
+  (order.items ?? []).forEach((i: any) =>
+    (i.adjustments ?? []).forEach((a: any) => a?.code && codes.add(a.code))
+  );
+  return [...codes].join(", ");
+};
+
+export const CostBreakdown = ({
+  order,
+  preview,
+}: {
+  order: AdminOrder;
+  preview: AdminOrderPreview;
+}) => {
+  const discount = revisedTotals(order as any, preview as any).discount;
   return (
     <div className="text-ui-fg-subtle flex flex-col gap-y-2 px-6 py-4">
       <Cost
         label="Discounts"
-        secondaryValue=""
+        secondaryValue={discountNames(order)}
         value={
-          order.discount_total > 0
-            ? `- ${formatAmount(order.discount_total, order.currency_code)}`
+          discount > 0
+            ? `- ${formatAmount(discount, order.currency_code)}`
             : "-"
         }
       />

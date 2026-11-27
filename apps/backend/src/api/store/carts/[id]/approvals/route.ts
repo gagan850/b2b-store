@@ -2,6 +2,7 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework";
+import { getFeatures } from "../../../../../lib/features";
 import { ApprovalStatusType } from "../../../../../types/approval";
 import { createApprovalsWorkflow } from "../../../../../workflows/approval/workflows";
 
@@ -10,6 +11,10 @@ export const POST = async (
   res: MedusaResponse
 ) => {
   const { id: cartId } = req.params;
+  if (!(await getFeatures(req.scope)).approvals) {
+    res.status(400).json({ message: "Approvals are turned off", code: "INVALID_DATA" });
+    return;
+  }
   const { customer_id } = req.auth_context.app_metadata as {
     customer_id: string;
   };

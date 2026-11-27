@@ -1,14 +1,21 @@
 "use client"
 
 import { addToCartEventBus } from "@/lib/data/cart-event-bus"
+import { ContractPrices, retrieveContractPrices } from "@/lib/data/contract-prices"
+import { useSession } from "@/lib/context/session-context"
 import { convertToLocale } from "@/lib/util/money"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
+import ItemQuoteForm from "@/modules/quotes/components/item-quote-form"
 import { HttpTypes } from "@medusajs/types"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type Tier = { min: number; amount: number }
 
-const tiersFor = (variant: HttpTypes.StoreProductVariant, currency: string) => {
+const tiersFor = (
+  variant: HttpTypes.StoreProductVariant,
+  currency: string,
+  contract?: { amount: number; contract: boolean }
+) => {
   const prices = ((variant as any).prices ?? []) as {
     amount: number
     currency_code: string
@@ -19,23 +26,53 @@ const tiersFor = (variant: HttpTypes.StoreProductVariant, currency: string) => {
   prices
     .filter((p) => p.currency_code === currency && !p.price_list_id)
     .forEach((p) => byMin.set(p.min_quantity ?? 1, p.amount))
-  return [...byMin.entries()]
+  const tiers = [...byMin.entries()]
     .map(([min, amount]) => ({ min, amount }))
     .sort((a, b) => a.min - b.min) as Tier[]
+  // A contract (price list) price replaces the public price breaks for this buyer
+  if (contract) {
+    return (tiers.length ? tiers : [{ min: 1, amount: 0 }]).map((t) => ({
+      min: t.min,
+      amount: contract.amount,
+    }))
+  }
+  return tiers
 }
+
+
 
 /** One product family laid out as a catalog table: item #, option, price breaks, qty, add. */
 export default function ProductFamilyTable({
   product,
   region,
+  showHeader = true,
 }: {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
+  showHeader?: boolean
 }) {
   const currency = region.currency_code
   const variants = product.variants ?? []
+  // This buyer's contract prices (the page itself is shared and static)
+  const { customer } = useSession()
+  const [mine, setMine] = useState<ContractPrices>({})
+  useEffect(() => {
+    if (!customer) {
+      setMine({})
+      return
+    }
+    let live = true
+    retrieveContractPrices(product.id, region.id)
+      .then((p) => live && setMine(p))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [customer?.id, product.id, region.id])
+  const contractOf = (v: HttpTypes.StoreProductVariant) =>
+    mine[v.id]?.contract ? mine[v.id] : undefined
   const tierMins = [
-    ...new Set(variants.flatMap((v) => tiersFor(v, currency).map((t) => t.min))),
+    ...new Set(variants.flatMap((v) => tiersFor(v, currency, contractOf(v)).map((t) => t.min))),
   ].sort((a, b) => a - b)
   const optionTitle = product.options?.[0]?.title ?? "Option"
   const [qty, setQty] = useState<Record<string, number>>({})
@@ -51,22 +88,107 @@ export default function ProductFamilyTable({
   const fmt = (n: number) => convertToLocale({ amount: n, currency_code: currency })
 
   return (
-    <section className="panel overflow-hidden">
-      <div className="flex flex-col gap-1 border-b border-brand-line p-4">
-        <LocalizedClientLink
-          href={`/products/${product.handle}`}
-          className="text-lg font-black text-brand-navy hover:text-brand-blue hover:underline"
-        >
-          {product.title}
-        </LocalizedClientLink>
-        {product.description && (
-          <p className="text-sm text-neutral-600">{product.description}</p>
-        )}
-      </div>
-      <div className="overflow-x-auto">
+    <section className="flex flex-col gap-4">
+      {showHeader && (
+        <div className="flex flex-col gap-4 xsmall:flex-row">
+          {product.thumbnail && (
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="h-32 w-32 shrink-0 self-center border border-brand-line bg-white xsmall:self-start"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={product.thumbnail} alt={product.title} className="h-full w-full object-contain" />
+            </LocalizedClientLink>
+          )}
+          <div className="flex flex-col gap-1">
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="text-xl font-bold text-brand-navy hover:text-brand-blue hover:underline"
+            >
+              {product.title}
+            </LocalizedClientLink>
+            {product.description && (
+              <p className="text-sm text-brand-ink">{product.description}</p>
+            )}
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="text-sm text-brand-blue hover:underline"
+            >
+              Details and specifications ›
+            </LocalizedClientLink>
+          </div>
+        </div>
+      )}
+      <div className="overflow-hidden border border-brand-line">
+      {/* Phone: one card per item */}
+      {variants.some((v) => contractOf(v)) && (
+        <p className="text-sm font-semibold text-brand-blue" data-testid="contract-price-note">
+          Your contract pricing is shown.
+        </p>
+      )}
+      <ul className="divide-y divide-brand-line small:hidden">
+        {variants.map((v) => {
+          const tiers = tiersFor(v, currency, contractOf(v))
+          const inStock =
+            !v.manage_inventory || v.allow_backorder || (v.inventory_quantity ?? 0) > 0
+          return (
+            <li key={v.id} className="flex flex-col gap-2 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-bold text-brand-blue">{v.sku}</p>
+                  <p className="text-sm text-brand-ink">
+                    {optionTitle}: {v.title}
+                  </p>
+                </div>
+                <span className={`chip ${inStock ? "chip-ok" : "chip-bad"}`}>
+                  {inStock ? "In stock" : "Out of stock"}
+                </span>
+              </div>
+              <div
+                className="grid gap-1 rounded bg-brand-canvas p-2 text-center text-xs"
+                style={{ gridTemplateColumns: `repeat(${Math.max(tierMins.length, 1)}, minmax(0, 1fr))` }}
+              >
+                {tierMins.map((m, i) => {
+                  const t = tiers.find((x) => x.min === m)
+                  return (
+                    <div key={m}>
+                      <p className="text-neutral-500">
+                        {i === tierMins.length - 1 ? `${m}+` : `${m}–${tierMins[i + 1] - 1}`}
+                      </p>
+                      <p className="text-sm font-bold text-brand-navy">
+                        {t ? fmt(t.amount) : "—"}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  value={qty[v.id] ?? ""}
+                  placeholder="Qty"
+                  onChange={(e) =>
+                    setQty((q) => ({ ...q, [v.id]: Number(e.target.value) }))
+                  }
+                  className="w-20 rounded border border-brand-line px-2 py-2 text-center outline-none focus:border-brand-blue"
+                  aria-label={`Quantity for ${v.sku}`}
+                />
+                <button onClick={() => add(v)} className="btn-accent flex-1">
+                  Add to cart
+                </button>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* Tablet and desktop: catalog table */}
+      <div className="hidden overflow-x-auto small:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-brand-navy text-left text-[11px] uppercase tracking-wide text-white">
+            <tr className="border-b-2 border-brand-navy bg-brand-canvas text-left text-xs font-bold uppercase tracking-wide text-brand-navy">
               <th className="px-4 py-2">Item #</th>
               <th className="px-4 py-2">{optionTitle}</th>
               {tierMins.map((m, i) => (
@@ -81,11 +203,11 @@ export default function ProductFamilyTable({
           </thead>
           <tbody>
             {variants.map((v, idx) => {
-              const tiers = tiersFor(v, currency)
+              const tiers = tiersFor(v, currency, contractOf(v))
               return (
                 <tr
                   key={v.id}
-                  className={idx % 2 ? "bg-brand-canvas" : "bg-white"}
+                  className={`border-b border-brand-line last:border-0 ${idx % 2 ? "bg-brand-canvas/60" : "bg-white"}`}
                 >
                   <td className="px-4 py-2 font-bold text-brand-blue">{v.sku}</td>
                   <td className="px-4 py-2">{v.title}</td>
@@ -136,6 +258,8 @@ export default function ProductFamilyTable({
           </tbody>
         </table>
       </div>
+      </div>
+      <ItemQuoteForm product={product} />
     </section>
   )
 }

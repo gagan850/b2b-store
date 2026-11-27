@@ -9,7 +9,7 @@ import {
   Toaster,
   usePrompt,
 } from "@medusajs/ui";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useOrderPreview } from "../../../hooks/api";
@@ -25,12 +25,11 @@ import {
   QuoteItems,
   QuoteTotal,
 } from "../components/quote-details";
-import { QuoteMessages } from "../components/quote-messages";
+import { SendQuoteDialog } from "../components/send-quote-dialog";
 
 const QuoteDetails = () => {
   const { quoteId } = useParams();
-  const [showSendQuote, setShowSendQuote] = useState(false);
-  const [showRejectQuote, setShowRejectQuote] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const prompt = usePrompt();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -52,43 +51,32 @@ const QuoteDetails = () => {
   const { mutateAsync: rejectQuote, isPending: isRejectingQuote } =
     useRejectQuote(quoteId!);
 
-  useEffect(() => {
-    if (["pending_merchant", "customer_rejected"].includes(quote?.status!)) {
-      setShowSendQuote(true);
-    } else {
-      setShowSendQuote(false);
-    }
+  // Derived straight from the status, so nothing lingers after acceptance.
+  const showSendQuote = ["pending_merchant", "customer_rejected"].includes(
+    quote?.status as string
+  );
+  const showRejectQuote = ["pending_merchant", "pending_customer"].includes(
+    quote?.status as string
+  );
 
-    if (
-      ["customer_rejected", "merchant_rejected", "accepted"].includes(
-        quote?.status!
-      )
-    ) {
-      setShowRejectQuote(false);
-    } else {
-      setShowRejectQuote(true);
-    }
-  }, [quote]);
+  const revisionNote: string =
+    (quote?.draft_order as any)?.metadata?.quote_revision_note ?? "";
+  const requestNote: string =
+    ([...((quote as any)?.messages ?? [])] as any[])
+      .filter((m) => m.customer_id)
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )[0]?.text ?? "";
 
-  const handleSendQuote = async () => {
-    const res = await prompt({
-      title: "Send quote?",
-      description:
-        "You are about to send this quote to the customer. Do you want to continue?",
-      confirmText: t("actions.continue"),
-      cancelText: t("actions.cancel"),
-      variant: "confirmation",
+  const handleSendQuote = async (v: { valid_until: string; note: string }) => {
+    await sendQuote(v, {
+      onSuccess: () => {
+        toast.success("Quote sent to customer");
+        setSendOpen(false);
+      },
+      onError: (e) => toast.error(e.message),
     });
-
-    if (res) {
-      await sendQuote(
-        {},
-        {
-          onSuccess: () => toast.success("Successfully sent quote to customer"),
-          onError: (e) => toast.error(e.message),
-        }
-      );
-    }
   };
 
   const handleRejectQuote = async () => {
@@ -131,23 +119,57 @@ const QuoteDetails = () => {
               <div className="flex items-center justify-between px-6 py-4">
                 <Text className="txt-compact-small">
                   <CheckCircleSolid className="inline-block mr-2 text-green-500 text-lg" />
-                  Quote accepted by customer. Order is ready for processing.
+                  {(quote.draft_order as any)?.metadata?.quote_order_id
+                    ? `Quote accepted. Order #${(quote.draft_order as any).metadata.quote_order_display_id} has been placed.`
+                    : "Quote accepted. Awaiting the customer to complete checkout."}
                 </Text>
 
-                <Button
-                  size="small"
-                  onClick={() => navigate(`/orders/${quote.draft_order_id}`)}
-                >
-                  View Order
-                </Button>
+                {(quote.draft_order as any)?.metadata?.quote_order_id && (
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      navigate(
+                        `/orders/${(quote.draft_order as any).metadata.quote_order_id}`
+                      )
+                    }
+                  >
+                    View Order
+                  </Button>
+                )}
               </div>
+            </Container>
+          )}
+
+          {quote.status === "customer_rejected" && revisionNote && (
+            <Container className="border-ui-tag-orange-border bg-ui-tag-orange-bg px-6 py-4">
+              <Text size="small" weight="plus">
+                The customer asked for changes
+              </Text>
+              <Text size="small" className="mt-1 whitespace-pre-line">
+                {revisionNote}
+              </Text>
+              <Text size="xsmall" className="text-ui-fg-subtle mt-2">
+                Edit prices or quantities from the menu (…) on the summary, then
+                send the revised quote.
+              </Text>
+            </Container>
+          )}
+
+          {requestNote && (
+            <Container className="px-6 py-4">
+              <Text size="small" weight="plus">
+                Customer's request note
+              </Text>
+              <Text size="small" className="text-ui-fg-subtle mt-1 whitespace-pre-line">
+                {requestNote}
+              </Text>
             </Container>
           )}
 
           <Container className="divide-y divide-dashed p-0">
             <QuoteDetailsHeader quote={quote} />
             <QuoteItems order={quote.draft_order} preview={preview!} />
-            <CostBreakdown order={quote.draft_order} />
+            <CostBreakdown order={quote.draft_order} preview={preview!} />
             <QuoteTotal order={quote.draft_order} preview={preview!} />
 
             {(showRejectQuote || showSendQuote) && (
@@ -167,17 +189,22 @@ const QuoteDetails = () => {
                   <Button
                     size="small"
                     variant="secondary"
-                    onClick={() => handleSendQuote()}
+                    onClick={() => setSendOpen(true)}
                     disabled={isSendingQuote}
                   >
-                    Send Quote
+                    {quote.status === "customer_rejected" ? "Send revised quote" : "Send Quote"}
                   </Button>
                 )}
               </div>
             )}
           </Container>
 
-          <QuoteMessages quote={quote} preview={preview!} />
+          <SendQuoteDialog
+            open={sendOpen}
+            setOpen={setSendOpen}
+            busy={isSendingQuote}
+            onSend={handleSendQuote}
+          />
 
           <JsonViewSection data={quote} />
         </div>
@@ -188,13 +215,13 @@ const QuoteDetails = () => {
               <Heading level="h2">Customer</Heading>
             </div>
 
-            <div className="text-ui-fg-subtle grid grid-cols-2 items-start px-6 py-4">
+            <div className="text-ui-fg-subtle grid grid-cols-[110px_minmax(0,1fr)] items-start gap-x-3 px-6 py-4">
               <Text size="small" weight="plus" leading="compact">
                 Email
               </Text>
 
               <Link
-                className="text-sm text-pretty text-blue-500"
+                className="text-sm break-all text-blue-500"
                 to={`/customers/${quote.draft_order?.customer?.id}`}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -212,17 +239,18 @@ const QuoteDetails = () => {
               </Text>
             </div>
 
-            <div className="text-ui-fg-subtle grid grid-cols-2 items-start px-6 py-4">
+            <div className="text-ui-fg-subtle grid grid-cols-[110px_minmax(0,1fr)] items-start gap-x-3 px-6 py-4">
               <Text size="small" weight="plus" leading="compact">
-                Spending Limit
+                Order limit
               </Text>
 
               <Text size="small" leading="compact" className="text-pretty">
-                {formatAmount(
-                  quote?.customer?.employee?.spending_limit,
-                  (quote?.customer?.employee?.company
-                    ?.currency_code as string) || "USD"
-                )}
+                {Number((quote.draft_order?.customer as any)?.employee?.spending_limit) > 0
+                  ? formatAmount(
+                      Number((quote.draft_order?.customer as any)?.employee?.spending_limit),
+                      (quote.draft_order?.currency_code as string) || "USD"
+                    )
+                  : "No limit"}
               </Text>
             </div>
           </Container>
@@ -239,10 +267,10 @@ const QuoteDetails = () => {
 
               <Link
                 className="text-sm text-pretty text-blue-500"
-                to={`/companies/${quote?.customer?.employee?.company.id}`}
+                to={`/companies/${(quote.draft_order?.customer as any)?.employee?.company?.id}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                {quote?.customer?.employee?.company?.name}
+                {(quote.draft_order?.customer as any)?.employee?.company?.name}
               </Link>
             </div>
           </Container>

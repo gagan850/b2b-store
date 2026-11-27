@@ -1,3 +1,4 @@
+import { getFeatures } from "@/lib/data/features"
 import { listApprovals } from "@/lib/data/approvals"
 import AccountNav from "@/modules/account/components/account-nav"
 import { B2BCustomer } from "@/types"
@@ -13,29 +14,33 @@ const AccountLayout: React.FC<AccountLayoutProps> = async ({
   customer,
   children,
 }) => {
-  const { carts_with_approvals } = await listApprovals({
-    type: ApprovalType.ADMIN,
-    status: ApprovalStatusType.PENDING,
-  })
+  const approvalsOn = (await getFeatures()).approvals
+  const { carts_with_approvals } = approvalsOn
+    ? await listApprovals({
+        type: ApprovalType.ADMIN,
+        status: ApprovalStatusType.PENDING,
+      })
+    : { carts_with_approvals: [] as any[] }
 
   const numPendingApprovals = carts_with_approvals?.length || 0
 
   return (
     <div
-      className="flex-1 small:py-12 bg-neutral-100"
+      className="flex-1 py-6"
       data-testid="account-page"
     >
-      <div className="flex-1 content-container h-full max-w-7xl mx-auto flex flex-col">
-        <div className="grid grid-cols-1  small:grid-cols-[240px_1fr] py-12">
+      <div className="flex-1 content-container h-full flex flex-col">
+        <div className="grid grid-cols-1 gap-6 small:grid-cols-[240px_1fr]">
           <div>
             {customer && (
               <AccountNav
                 customer={customer}
                 numPendingApprovals={numPendingApprovals}
+                approvalsEnabled={approvalsOn}
               />
             )}
           </div>
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 min-w-0 bg-white p-4 small:p-8">{children}</div>
         </div>
       </div>
     </div>

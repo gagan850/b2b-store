@@ -7,14 +7,20 @@ import ErrorMessage from "@/modules/checkout/components/error-message"
 import { SubmitButton } from "@/modules/checkout/components/submit-button"
 import CheckboxWithLabel from "@/modules/common/components/checkbox"
 import Divider from "@/modules/common/components/divider"
-import { B2BCart } from "@/types"
+import { B2BCart, B2BCustomer } from "@/types"
 import { ApprovalStatusType } from "@/types/approval"
 import { CheckCircleSolid } from "@medusajs/icons"
 import { clx, Container, Heading, Text, useToggleState } from "@medusajs/ui"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useState } from "react"
 
-const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
+const BillingAddress = ({
+  cart,
+  customer,
+}: {
+  cart: B2BCart | null
+  customer?: B2BCustomer | null
+}) => {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -104,7 +110,7 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
             <Divider />
             <form action={handleSubmit}>
               <div className="py-2">
-                <BillingAddressForm cart={cart} />
+                <BillingAddressForm cart={cart} customer={customer} />
               </div>
               <div className="flex flex-col gap-y-2 items-end">
                 <SubmitButton

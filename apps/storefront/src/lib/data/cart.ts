@@ -16,6 +16,8 @@ import {
   removeCartId,
   setCartId,
 } from "./cookies"
+import { getFeatures } from "./features"
+import { getImpersonation } from "./impersonation"
 import { retrieveCustomer } from "./customer"
 import { getRegion } from "./regions"
 
@@ -40,12 +42,24 @@ export async function retrieveCart(id?: string) {
       method: "GET",
       query: {
         fields:
-          "*items, *region, *items.product, *items.variant, +items.thumbnail, +items.metadata, *promotions, *company, *company.approval_settings, *customer, *approvals, +completed_at, *approval_status",
+          "*items, *region, *items.product, *items.variant, +items.thumbnail, +items.metadata, *promotions, *company, *company.approval_settings, *customer, *approvals, +completed_at, *approval_status, +shipping_methods.data, +shipping_methods.name",
       },
       headers,
       next,
     })
-    .then(({ cart }) => {
+    .then(async ({ cart }) => {
+      // With approvals switched off, hide every approval rule from the UI
+      if (!(await getFeatures()).approvals) {
+        const c = cart as any
+        if (c.company?.approval_settings) {
+          c.company.approval_settings = {
+            ...c.company.approval_settings,
+            requires_admin_approval: false,
+            requires_sales_manager_approval: false,
+          }
+        }
+        c.approvals = []
+      }
       return cart as B2BCart
     })
     .catch(() => {
@@ -271,16 +285,23 @@ export async function emptyCart() {
 export async function setShippingMethod({
   cartId,
   shippingMethodId,
+  data,
 }: {
   cartId: string
   shippingMethodId: string
+  data?: Record<string, unknown>
 }) {
   const headers = {
     ...(await getAuthHeaders()),
   }
 
   return sdk.store.cart
-    .addShippingMethod(cartId, { option_id: shippingMethodId }, {}, headers)
+    .addShippingMethod(
+      cartId,
+      { option_id: shippingMethodId, ...(data ? { data } : {}) },
+      {},
+      headers
+    )
     .then(async () => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag, { expire: 0 })
@@ -293,6 +314,7 @@ export async function initiatePaymentSession(
   data: {
     provider_id: string
     context?: Record<string, unknown>
+    data?: Record<string, unknown>
   }
 ) {
   const headers = {
@@ -380,6 +402,24 @@ export async function submitPromotionForm(
   }
 }
 
+// Save a checkout address to the buyer's address book, unless it is already there
+async function saveToAddressBook(address: Record<string, any>) {
+  const customer = await retrieveCustomer()
+  if (!customer) return
+  const keys = ["first_name", "last_name", "company", "address_1", "city", "province", "postal_code", "country_code", "phone"]
+  const norm = (a: any) => keys.map((k) => String(a?.[k] ?? "").trim().toLowerCase()).join("|")
+  if ((customer.addresses ?? []).some((a: any) => norm(a) === norm(address))) return
+  const headers = { ...(await getAuthHeaders()) }
+  const clean = Object.fromEntries(keys.map((k) => [k, String(address[k] ?? "")]))
+  await sdk.store.customer
+    .createAddress(clean as any, {}, headers)
+    .then(async () => {
+      const cacheTag = await getCacheTag("customers")
+      revalidateTag(cacheTag, { expire: 0 })
+    })
+    .catch(() => null)
+}
+
 // TODO: Pass a POJO instead of a form entity here
 export async function setShippingAddress(formData: FormData) {
   try {
@@ -411,6 +451,9 @@ export async function setShippingAddress(formData: FormData) {
       email: customer?.email || formData.get("email"),
     } as any
     await updateCart(data)
+    if (formData.get("save_address") === "1") {
+      await saveToAddressBook(data.shipping_address)
+    }
   } catch (e: any) {
     throw new Error(e)
   }
@@ -439,6 +482,9 @@ export async function setBillingAddress(formData: FormData) {
     } as any
 
     await updateCart(data)
+    if (formData.get("save_address") === "1") {
+      await saveToAddressBook(data.billing_address)
+    }
   } catch (e: any) {
     return e.message
   }
@@ -453,14 +499,20 @@ export async function setContactDetails(
     if (!cartId) {
       throw new Error("No existing cart found when setting contact details")
     }
+    const cart = await retrieveCart()
+    const str = (k: string) => String(formData.get(k) ?? "").trim()
+    const blindShip = formData.get("blind_ship") === "1"
+    // Staff shopping as a buyer: mark the order as placed on their behalf
+    const who = await getImpersonation()
     const data = {
-      email: formData.get("email") as string,
+      email: str("email"),
       metadata: {
-        invoice_recipient: formData.get("invoice_recipient"),
-        cost_center: formData.get("cost_center"),
-        requisition_number: formData.get("requisition_number"),
-        door_code: formData.get("door_code"),
-        notes: formData.get("notes"),
+        ...(cart?.metadata ?? {}),
+        po_number: str("po_number").slice(0, 40),
+        notes: str("notes").slice(0, 200),
+        blind_ship: blindShip,
+        blind_ship_name: blindShip ? str("blind_ship_name").slice(0, 60) : "",
+        ...(who ? { placed_by_staff: who.staff, placed_by_staff_id: who.staff_id } : {}),
       },
     }
     await updateCart(data)
@@ -473,6 +525,13 @@ export async function placeOrder(
   cartId?: string
 ): Promise<HttpTypes.StoreCompleteCartResponse> {
   const id = cartId || (await getCartId())
+
+  const staffSession = await getImpersonation()
+  if (staffSession && staffSession.mode !== "order") {
+    throw new Error(
+      "This is a view-only staff session. Orders can't be placed. Exit and start a session with order access."
+    )
+  }
 
   if (!id) {
     throw new Error("No existing cart found when placing an order")

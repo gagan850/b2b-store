@@ -12,6 +12,13 @@ export enum ModuleCompanySpendingLimitResetFrequency {
   YEARLY = "yearly",
 }
 
+export type ModuleCompanyPaymentTerms =
+  | "prepaid"
+  | "net_15"
+  | "net_30"
+  | "net_45"
+  | "net_60";
+
 export type ModuleCompany = {
   id: string;
   name: string;
@@ -25,6 +32,8 @@ export type ModuleCompany = {
   logo_url: string | null;
   currency_code: string | null;
   spending_limit_reset_frequency: ModuleCompanySpendingLimitResetFrequency;
+  payment_terms: ModuleCompanyPaymentTerms;
+  credit_hold: boolean;
   created_at: Date;
   updated_at: Date;
   customer_group: CustomerGroupDTO;

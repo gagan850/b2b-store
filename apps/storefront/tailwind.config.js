@@ -13,17 +13,18 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          navy: "#0B1F3F",
-          "navy-2": "#13305F",
-          blue: "#1556C9",
-          "blue-dark": "#0F43A0",
-          "blue-light": "#E8F0FC",
-          accent: "#F28C1B",
-          "accent-dark": "#D9760A",
-          "accent-light": "#FFF4E5",
-          ink: "#1A2233",
-          line: "#D6DCE6",
-          canvas: "#F3F5F9",
+          // LK Packaging palette (from lkpkg.com)
+          navy: "#163E5C",
+          "navy-2": "#225D84",
+          blue: "#0070B7",
+          "blue-dark": "#005A93",
+          "blue-light": "#E3F1FC",
+          accent: "#FF9900",
+          "accent-dark": "#E08600",
+          "accent-light": "#FFF5E5",
+          ink: "#333333",
+          line: "#D5DEE6",
+          canvas: "#F4F7FA",
         },
         status: {
           ok: "#16A34A",
@@ -51,7 +52,8 @@ module.exports = {
         "2xlarge": "1920px",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)"],
+        sans: ["\"Open Sans\"", "var(--font-geist-sans)", "sans-serif"],
+        condensed: ["\"Open Sans Condensed\"", "\"Open Sans\"", "sans-serif"],
       },
       keyframes: {
         "accordion-open": {

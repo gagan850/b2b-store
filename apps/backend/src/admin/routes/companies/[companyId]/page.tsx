@@ -13,6 +13,7 @@ import { useParams } from "react-router-dom";
 import { useAdminCustomerGroups, useCompany } from "../../../hooks/api";
 import { formatAmount } from "../../../utils";
 import { CompanyActionsMenu } from "../components";
+import { PAYMENT_TERMS } from "../components/company-form";
 import {
   EmployeeCreateDrawer,
   EmployeesActionsMenu,
@@ -91,6 +92,33 @@ const CompanyDetails = () => {
                   </Table.Cell>
                   <Table.Cell>
                     {company?.currency_code?.toUpperCase()}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell className="font-medium font-sans txt-compact-small">
+                    Payment Terms
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="flex gap-2">
+                      <Badge
+                        size="small"
+                        color={
+                          (company as any)?.payment_terms &&
+                          (company as any).payment_terms !== "prepaid"
+                            ? "green"
+                            : "grey"
+                        }
+                      >
+                        {PAYMENT_TERMS.find(
+                          (t) => t.value === ((company as any)?.payment_terms ?? "prepaid")
+                        )?.label ?? "Prepaid (card only)"}
+                      </Badge>
+                      {(company as any)?.credit_hold && (
+                        <Badge size="small" color="red">
+                          Credit hold
+                        </Badge>
+                      )}
+                    </div>
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row>

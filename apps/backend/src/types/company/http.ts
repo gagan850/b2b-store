@@ -1,7 +1,10 @@
 import { FindParams, PaginatedResponse } from "@medusajs/framework/types";
 import { QueryCompany, QueryEmployee } from "./query";
 import { ModuleCompanyFilters, ModuleEmployeeFilters } from "./service";
-import { ModuleCompanySpendingLimitResetFrequency } from "./module";
+import {
+  ModuleCompanyPaymentTerms,
+  ModuleCompanySpendingLimitResetFrequency,
+} from "./module";
 
 /* Filters */
 
@@ -35,7 +38,10 @@ export type AdminCreateCompany = {
   currency_code: string | null;
 };
 
-export type AdminUpdateCompany = Partial<AdminCreateCompany>;
+export type AdminUpdateCompany = Partial<AdminCreateCompany> & {
+  payment_terms?: ModuleCompanyPaymentTerms;
+  credit_hold?: boolean;
+};
 
 /* Employee */
 

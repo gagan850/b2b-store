@@ -1,6 +1,7 @@
 import { defineRouteConfig } from "@medusajs/admin-sdk";
 import { CheckCircle } from "@medusajs/icons";
 import { Container, Heading, Toaster } from "@medusajs/ui";
+import { ApprovalsSwitch } from "./components/approvals-switch";
 import { ApprovalsTable } from "./components/approvals-table";
 
 const Approvals = () => {
@@ -10,6 +11,8 @@ const Approvals = () => {
         <Heading className="p-6 pb-0 font-sans font-medium h1-core">
           Approvals
         </Heading>
+        <div className="pt-4" />
+        <ApprovalsSwitch />
         <ApprovalsTable />
       </Container>
       <Toaster />

@@ -8,7 +8,7 @@ export const useApprovalsTableFilters = () => [
     label: "Status",
     type: "select",
     options: [
-      { label: "Pending", value: ApprovalStatusType.PENDING },
+      { label: "Pending Approval", value: ApprovalStatusType.PENDING },
       { label: "Approved", value: ApprovalStatusType.APPROVED },
       { label: "Rejected", value: ApprovalStatusType.REJECTED },
     ],

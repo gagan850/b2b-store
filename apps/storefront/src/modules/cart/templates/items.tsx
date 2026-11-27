@@ -3,7 +3,7 @@ import { convertToLocale } from "@/lib/util/money"
 import ItemFull from "@/modules/cart/components/item-full"
 import { B2BCart } from "@/types/global"
 import { StoreCartLineItem } from "@medusajs/types"
-import { Container, Text } from "@medusajs/ui"
+import { Text } from "@medusajs/ui"
 import { useMemo } from "react"
 
 type ItemsTemplateProps = {
@@ -50,9 +50,9 @@ const ItemsTemplate = ({
           })}
       </div>
       {showTotal && (
-        <Container>
-          <div className="flex items-start justify-between h-full self-stretch">
-            <Text>Total: {totalQuantity} items</Text>
+        <div className="border border-brand-line bg-white px-4 py-3">
+          <div className="flex items-start justify-between h-full self-stretch font-semibold text-brand-navy">
+            <Text>{items?.length} {items?.length === 1 ? "line item" : "line items"} · {totalQuantity} units</Text>
             <Text>
               {convertToLocale({
                 amount: cart?.item_total,
@@ -60,7 +60,7 @@ const ItemsTemplate = ({
               })}
             </Text>
           </div>
-        </Container>
+        </div>
       )}
     </div>
   )

@@ -2,7 +2,7 @@ import type {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework";
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
+import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils";
 import { customerAcceptQuoteWorkflow } from "../../../../../workflows/quote/workflows";
 import { AcceptQuoteType } from "../../validators";
 
@@ -12,6 +12,21 @@ export const POST = async (
 ) => {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
   const { id } = req.params;
+
+  const {
+    data: [current],
+  } = await query.graph({
+    entity: "quote",
+    fields: ["id", "draft_order.metadata"],
+    filters: { id, customer_id: req.auth_context.actor_id },
+  });
+  const until = (current as any)?.draft_order?.metadata?.quote_valid_until;
+  if (until && new Date(until).getTime() < Date.now()) {
+    throw new MedusaError(
+      MedusaError.Types.NOT_ALLOWED,
+      "This quote has expired. Please ask us for a new one."
+    );
+  }
 
   await customerAcceptQuoteWorkflow(req.scope).run({
     input: {

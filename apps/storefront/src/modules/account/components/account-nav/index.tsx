@@ -15,9 +15,11 @@ import { useParams, usePathname } from "next/navigation"
 const AccountNav = ({
   customer,
   numPendingApprovals,
+  approvalsEnabled,
 }: {
   customer: B2BCustomer | null
   numPendingApprovals: number
+  approvalsEnabled?: boolean
 }) => {
   const route = usePathname()
 
@@ -106,7 +108,7 @@ const AccountNav = ({
                     <ChevronDown className="transform -rotate-90" />
                   </LocalizedClientLink>
                 </li>
-                {customer?.employee?.is_admin && (
+                {approvalsEnabled && customer?.employee?.is_admin && (
                   <li>
                     <LocalizedClientLink
                       href="/account/approvals"
@@ -121,6 +123,19 @@ const AccountNav = ({
                     </LocalizedClientLink>
                   </li>
                 )}
+                <li>
+                  <LocalizedClientLink
+                    href="/account/invoices"
+                    className="flex items-center justify-between py-4 border-b border-gray-200 px-8"
+                    data-testid="invoices-link"
+                  >
+                    <div className="flex items-center gap-x-2">
+                      <FilePlus size={16} />
+                      <span>Invoices</span>
+                    </div>
+                    <ChevronDown className="transform -rotate-90" />
+                  </LocalizedClientLink>
+                </li>
                 <li>
                   <LocalizedClientLink
                     href="/account/quotes"
@@ -153,9 +168,10 @@ const AccountNav = ({
           </>
         )}
       </div>
-      <div className="hidden small:block" data-testid="account-nav">
-        <div className="text-lg">
-          <ul className="flex mb-0 justify-start items-start flex-col gap-y-4">
+      <div className="hidden small:block panel overflow-hidden" data-testid="account-nav">
+        <div className="panel-title">My Account</div>
+        <div className="text-sm">
+          <ul className="flex mb-0 flex-col divide-y divide-brand-line">
             <li>
               <AccountNavLink
                 href="/account"
@@ -201,7 +217,7 @@ const AccountNav = ({
                 Orders
               </AccountNavLink>
             </li>
-            {customer?.employee?.is_admin && (
+            {approvalsEnabled && customer?.employee?.is_admin && (
               <li>
                 <AccountNavLink
                   href="/account/approvals"
@@ -210,13 +226,22 @@ const AccountNav = ({
                 >
                   Approvals{" "}
                   {numPendingApprovals > 0 && (
-                    <span className="bg-blue-500 text-white text-xs px-1.5 py-px rounded-full">
+                    <span className="bg-brand-accent text-white text-xs px-1.5 py-px rounded-full">
                       {numPendingApprovals}
                     </span>
                   )}
                 </AccountNavLink>
               </li>
             )}
+            <li>
+              <AccountNavLink
+                href="/account/invoices"
+                route={route!}
+                data-testid="invoices-link"
+              >
+                Invoices
+              </AccountNavLink>
+            </li>
             <li>
               <AccountNavLink
                 href="/account/quotes"
@@ -226,10 +251,11 @@ const AccountNav = ({
                 Quotes
               </AccountNavLink>
             </li>
-            <li className="text-neutral-400 hover:text-neutral-950">
+            <li className="text-neutral-500 hover:text-red-600">
               <button
                 type="button"
                 onClick={handleLogout}
+                className="w-full px-4 py-2.5 text-left"
                 data-testid="logout-button"
               >
                 Log out
@@ -262,9 +288,9 @@ const AccountNavLink = ({
     <LocalizedClientLink
       href={href}
       className={clx(
-        "text-neutral-400 hover:text-neutral-950 flex items-center gap-x-2",
+        "flex items-center gap-x-2 px-4 py-2.5 text-brand-ink hover:bg-brand-blue-light hover:text-brand-blue",
         {
-          "text-neutral-950": active,
+          "bg-brand-blue-light font-bold text-brand-blue border-l-4 border-brand-blue": active,
         }
       )}
       data-testid={dataTestId}

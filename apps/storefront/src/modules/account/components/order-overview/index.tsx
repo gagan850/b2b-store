@@ -1,8 +1,8 @@
 "use client"
 
+import EmptyState from "@/modules/common/components/empty-state"
+
 import OrderCard from "@/modules/account/components/order-card"
-import Button from "@/modules/common/components/button"
-import LocalizedClientLink from "@/modules/common/components/localized-client-link"
 import { HttpTypes } from "@medusajs/types"
 
 const OrderOverview = ({ orders }: { orders: HttpTypes.StoreOrder[] }) => {
@@ -19,22 +19,14 @@ const OrderOverview = ({ orders }: { orders: HttpTypes.StoreOrder[] }) => {
   }
 
   return (
-    <div
-      className="w-full flex flex-col items-center gap-y-4"
-      data-testid="no-orders-container"
-    >
-      <h2 className="text-large-semi">Nothing to see here</h2>
-      <p className="text-base-regular">
-        You don&apos;t have any orders yet, let us change that {":)"}
-      </p>
-      <div className="mt-4">
-        <LocalizedClientLink href="/" passHref>
-          <Button data-testid="continue-shopping-button">
-            Continue shopping
-          </Button>
-        </LocalizedClientLink>
-      </div>
-    </div>
+    <EmptyState
+      icon="box"
+      title="No orders yet"
+      text="Orders you place will show up here, with tracking and invoices."
+      primary={{ label: "Start shopping", href: "/store" }}
+      compact
+      testId="no-orders-container"
+    />
   )
 }
 

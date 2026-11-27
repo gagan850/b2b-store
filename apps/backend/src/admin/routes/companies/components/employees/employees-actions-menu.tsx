@@ -1,10 +1,11 @@
-import { EllipsisHorizontal, PencilSquare, Trash } from "@medusajs/icons";
+import { EllipsisHorizontal, Eye, PencilSquare, Trash } from "@medusajs/icons";
 import { DropdownMenu, IconButton, toast } from "@medusajs/ui";
 import { useState } from "react";
 import { EmployeesUpdateDrawer } from ".";
 import { QueryCompany, QueryEmployee } from "../../../../../types";
 import { DeletePrompt } from "../../../../components/common";
 import { useDeleteEmployee } from "../../../../hooks/api";
+import { ShopAsBuyerModal } from "./shop-as-buyer-modal";
 
 export const EmployeesActionsMenu = ({
   company,
@@ -15,6 +16,7 @@ export const EmployeesActionsMenu = ({
 }) => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const { mutateAsync: mutateDelete, isPending: loadingDelete } =
     useDeleteEmployee(employee.company_id);
 
@@ -35,6 +37,11 @@ export const EmployeesActionsMenu = ({
           </IconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
+          <DropdownMenu.Item className="gap-x-2" onClick={() => setShopOpen(true)}>
+            <Eye />
+            Shop as this buyer
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator />
           <DropdownMenu.Item
             className="gap-x-2"
             onClick={() => setEditOpen(true)}
@@ -52,6 +59,12 @@ export const EmployeesActionsMenu = ({
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu>
+      <ShopAsBuyerModal
+        company={company}
+        employee={employee}
+        open={shopOpen}
+        setOpen={setShopOpen}
+      />
       <EmployeesUpdateDrawer
         company={company}
         employee={employee}

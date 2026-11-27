@@ -24,9 +24,9 @@ const Review = ({
     <div className="flex flex-col gap-y-2">
       <div className="flex items-start gap-x-1 w-full">
         <Text className="txt-xsmall text-neutral-500 mb-1">
-          By Completing this order, I agree to Medusa&apos;s{" "}
+          By placing this order, I agree to LK Packaging&apos;s{" "}
           <LocalizedClientLink
-            href="/terms-of-sale"
+            href="/terms"
             className="hover:text-neutral-800"
             target="_blank"
           >
@@ -34,7 +34,7 @@ const Review = ({
           </LocalizedClientLink>{" "}
           and{" "}
           <LocalizedClientLink
-            href="/privacy-policy"
+            href="/privacy"
             className="hover:text-neutral-800"
             target="_blank"
           >
@@ -52,7 +52,7 @@ const Review = ({
               Please contact your manager for approval.
             </p>
           </div>
-          <Button className="w-full h-10 rounded-full shadow-none" disabled>
+          <Button className="w-full h-10 rounded-md shadow-none" disabled>
             Place Order
           </Button>
         </>
