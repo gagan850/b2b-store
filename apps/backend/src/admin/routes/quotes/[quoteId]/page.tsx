@@ -169,7 +169,7 @@ const QuoteDetails = () => {
           <Container className="divide-y divide-dashed p-0">
             <QuoteDetailsHeader quote={quote} />
             <QuoteItems order={quote.draft_order} preview={preview!} />
-            <CostBreakdown order={quote.draft_order} />
+            <CostBreakdown order={quote.draft_order} preview={preview!} />
             <QuoteTotal order={quote.draft_order} preview={preview!} />
 
             {(showRejectQuote || showSendQuote) && (

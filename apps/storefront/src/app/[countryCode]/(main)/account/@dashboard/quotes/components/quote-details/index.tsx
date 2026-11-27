@@ -1,6 +1,7 @@
 "use client"
 
 import { acceptQuote, rejectQuote, reviseQuote, startQuoteCheckout } from "@/lib/data/quotes"
+import { revisedTotals } from "@/lib/util/quote-totals"
 import { formatAmount } from "@/modules/common/components/amount-cell"
 import Button from "@/modules/common/components/button"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
@@ -63,7 +64,8 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
       )
     ),
   ].join(", ")
-  const priceChanged = Number(order.total) !== Number(preview.total)
+  const totals = revisedTotals(order as any, preview as any)
+  const priceChanged = Number(order.total) !== totals.total
   const expired = validUntil ? validUntil.getTime() < Date.now() : false
   const daysLeft = validUntil
     ? Math.ceil((validUntil.getTime() - Date.now()) / 86400000)
@@ -138,11 +140,11 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
 
           <Container className="p-0">
             <div className="flex flex-col gap-y-2 px-6 py-4 text-sm" data-testid="quote-summary">
-              <Row label="Subtotal" value={formatAmount(Number(preview.item_subtotal ?? preview.subtotal ?? 0), order.currency_code)} />
-              {Number(preview.discount_total) > 0 && (
+              <Row label="Subtotal" value={formatAmount(totals.subtotal, order.currency_code)} />
+              {totals.discount > 0 && (
                 <Row
                   label={discountNames ? `Discount (${discountNames})` : "Discount"}
-                  value={`- ${formatAmount(Number(preview.discount_total), order.currency_code)}`}
+                  value={`- ${formatAmount(totals.discount, order.currency_code)}`}
                   accent
                 />
               )}
@@ -155,14 +157,14 @@ const QuoteDetails: React.FC<QuoteDetailsProps> = ({
               <div className="mt-1 flex items-center justify-between border-t border-brand-line pt-3">
                 <span className="font-bold text-brand-navy">Quote total</span>
                 <span className="text-base font-bold text-brand-navy">
-                  {formatAmount(Number(preview.total), order.currency_code)}
+                  {formatAmount(totals.total, order.currency_code)}
                 </span>
               </div>
               {priceChanged && (
                 <p className="text-xs text-neutral-500">
                   Requested total: {formatAmount(Number(order.total), order.currency_code)}.{" "}
-                  {Number(order.total) > Number(preview.total)
-                    ? `Quoted savings: ${formatAmount(Number(order.total) - Number(preview.total), order.currency_code)}.`
+                  {Number(order.total) > totals.total
+                    ? `Quoted savings: ${formatAmount(Number(order.total) - totals.total, order.currency_code)}.`
                     : "Pricing has been revised."}
                 </p>
               )}
